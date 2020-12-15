@@ -13,10 +13,19 @@
     "@babel/preset-env": "^7.12.10",
     "babel-loader": "^8.2.2",
     "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^7.0.0",
     "css-loader": "^5.0.1",
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^7.0.0",
+    "eslint-plugin-html": "^6.1.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.3.0",
     "file-loader": "^6.2.0",
     "html-loader": "^1.3.2",
     "html-webpack-plugin": "^4.5.0",
+    "prettier": "^2.2.1",
     "sass": "^1.30.0",
     "sass-loader": "^10.1.0",
     "style-loader": "^2.0.0"
@@ -24,7 +33,9 @@
   "scripts": {
     "style": "sass --watch src/styles/style.scss src/styles/style.css",
     "dev": "webpack --mode development",
-    "prod": "webpack --mode production"
+    "prod": "webpack --mode production",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix"
   },
   "repository": {
     "type": "git",
