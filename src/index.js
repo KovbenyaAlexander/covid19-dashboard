@@ -1,2 +1,3 @@
-import _ from 'lodash';
-import './styles/style.scss';
+import MainAppController from './js/controllers/MainAppController';
+
+const app = new MainAppController();
