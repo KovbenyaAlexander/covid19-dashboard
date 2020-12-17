@@ -11,7 +11,7 @@ export default class CovidDate extends EventEmitter {
 
   init() {
     const allData = Promise.all([this.fetchData('https://api.covid19api.com/summary'),
-    this.fetchData('https://restcountries.eu/rest/v2/all?fields=name;population;flag;alpha2Code')]).then((responses) => {
+      this.fetchData('https://restcountries.eu/rest/v2/all?fields=name;population;flag;alpha2Code')]).then((responses) => {
       const [globalInfo, summaryInfo, additionalInfo] = [responses[0].Global, responses[0].Countries, responses[1]];
       const EARTH_POPULATION = 7600000000;
       const data = {};
