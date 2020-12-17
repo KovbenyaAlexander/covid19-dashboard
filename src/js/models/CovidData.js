@@ -11,8 +11,9 @@ export default class CovidDate extends EventEmitter {
 
   init() {
     const allData = Promise.all([this.fetchData('https://api.covid19api.com/summary'),
-    this.fetchData('https://restcountries.eu/rest/v2/all?fields=name;population;flag;alpha2Code')]).then((responses) => {
-      const [globalInfo, summaryInfo, additionalInfo] = [responses[0].Global, responses[0].Countries, responses[1]];
+      this.fetchData('https://restcountries.eu/rest/v2/all?fields=name;population;flag;alpha2Code'),
+      this.fetchData('https://covid19-api.org/api/timeline')]).then((responses) => {
+      const [globalInfo, summaryInfo, additionalInfo, timeline] = [responses[0].Global, responses[0].Countries, responses[1], responses[2]];
       const EARTH_POPULATION = 7600000000;
       const data = {};
       summaryInfo.forEach((summaryCountry) => {
@@ -26,6 +27,7 @@ export default class CovidDate extends EventEmitter {
         summaryCountry.newRecoveredPer100k = Number(((summaryCountry.NewRecovered / summaryCountry.population) * 100000).toFixed(5));
         summaryCountry.newConfirmedPer100k = Number(((summaryCountry.NewConfirmed / summaryCountry.population) * 100000).toFixed(5));
       });
+      data.timeline = timeline;
       data.GlobalInfo = globalInfo;
       data.CountriesInfo = summaryInfo;
       data.GlobalInfo.earth_population = EARTH_POPULATION;
@@ -51,9 +53,9 @@ export default class CovidDate extends EventEmitter {
     return data;
   }
 
-  log() {
-    console.log(this.data);
-  }
+  // log() {
+  //   console.log(this.data);
+  // }
 
   сountriesInfoSort(value) {
     this.data.CountriesInfo = _.orderBy(this.data.CountriesInfo, [value], ['desc']);

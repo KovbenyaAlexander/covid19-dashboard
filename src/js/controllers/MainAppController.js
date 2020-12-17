@@ -14,11 +14,16 @@ export default class MainAppController {
     this.dashboardView.displayTable(value);
   }
 
+  displayChart(value) {
+    this.dashboardView.displayChart(value);
+  }
+
   setUplocalListeners() {
     this.model.on('hasdata', () => {
       this.dashboardView.model = this.model;
       this.model.сountriesInfoSort(this.props[this.propId]);
       this.displayTable(this.props[this.propId]);
+      this.displayChart();
     });
     this.dashboardView.on('nextprop', () => {
       if (this.propId < this.props.length - 1) {
