@@ -105,13 +105,7 @@ export default class CovidDashboardView extends EventEmitter {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   displayInfoAboutCountry() {
-    // const typeOfCountingSwitcher = elementFactory('button', { class: 'typeOfCountingSwitcher' });
-    // typeOfCountingSwitcher.innerText = 'global / per100k';
-    // const dataSwitcher = elementFactory('button', { class: 'dataSwitcher' });
-    // dataSwitcher.innerText = 'all time / last day';
-
     const input = elementFactory('input', { type: 'checkbox' });
     const dateSwitcherSpan = elementFactory('span', { class: 'slider round' });
     const dateSwitcher = elementFactory('label', { class: 'switch' }, input, dateSwitcherSpan);
@@ -150,17 +144,44 @@ export default class CovidDashboardView extends EventEmitter {
 
     dateSwitcherSpan.addEventListener('click', () => {
       this.model.isCountingForLastDay = !this.model.isCountingForLastDay;
-      console.log(this.model.isCountingForLastDay);
-      console.log(this.model.isCountingAbsolute);
-      console.log('DATE');
+      this.updateInfoAboutCountry();
     });
 
     typeOfCountingSwitcherSpan.addEventListener('click', () => {
       this.model.isCountingAbsolute = !this.model.isCountingAbsolute;
-      console.log(this.model.isCountingForLastDay);
-      console.log(this.model.isCountingAbsolute);
-      console.log('TYPE');
+      this.updateInfoAboutCountry();
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  updateInfoAboutCountry() {
+    const { data } = this.model;
+    const isLastDay = this.model.isCountingForLastDay;
+    const { isCountingAbsolute } = this.model;
+    const countOfDesease = document.querySelector('.country_info__CountOfDesease');
+    const countOfDeath = document.querySelector('.country_info__CountOfDeath');
+    const countOfRecovered = document.querySelector('.country_info__CountOfRecovered');
+
+    if (isLastDay && isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.NewConfirmed;
+      countOfDeath.innerText = data.GlobalInfo.NewDeaths;
+      countOfRecovered.innerText = data.GlobalInfo.NewRecovered;
+    }
+    if (!isLastDay && isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.TotalConfirmed;
+      countOfDeath.innerText = data.GlobalInfo.TotalDeaths;
+      countOfRecovered.innerText = data.GlobalInfo.TotalRecovered;
+    }
+    if (isLastDay && !isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.newConfirmedPer100k;
+      countOfDeath.innerText = data.GlobalInfo.newDeathPer100k;
+      countOfRecovered.innerText = data.GlobalInfo.newRecoveredPer100k;
+    }
+    if (!isLastDay && !isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.totalConfirmedPer100k;
+      countOfDeath.innerText = data.GlobalInfo.totalDeathPer100k;
+      countOfRecovered.innerText = data.GlobalInfo.totalRecoveredPer100k;
+    }
   }
 
   setUpLocalListeners() {

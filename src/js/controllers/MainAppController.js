@@ -27,6 +27,10 @@ export default class MainAppController {
     this.dashboardView.displayInfoAboutCountry();
   }
 
+  updateInfoAboutCountry() {
+    this.dashboardView.updateInfoAboutCountry();
+  }
+
   setUplocalListeners() {
     this.model.on('hasdata', () => {
       this.dashboardView.model = this.model;
@@ -34,6 +38,7 @@ export default class MainAppController {
       this.displayTable(this.props[this.propId]);
       this.displayChart();
       this.displayInfoAboutCountry();
+      this.updateInfoAboutCountry();
     });
     this.dashboardView.on('nextprop', () => {
       if (this.propId < this.props.length - 1) {
