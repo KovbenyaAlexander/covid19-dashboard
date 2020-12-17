@@ -7,6 +7,8 @@ export default class CovidDate extends EventEmitter {
     super();
     this.data = [];
     this.init();
+    this.isCountingForLastDay = false;
+    this.isCountingAbsolute = false;
   }
 
   init() {

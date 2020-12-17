@@ -107,18 +107,36 @@ export default class CovidDashboardView extends EventEmitter {
 
   // eslint-disable-next-line class-methods-use-this
   displayInfoAboutCountry() {
-    const typeOfCountingSwitcher = elementFactory('button', { class: 'typeOfCountingSwitcher' });
-    typeOfCountingSwitcher.innerText = 'global / per100k';
-    const dataSwitcher = elementFactory('button', { class: 'dataSwitcher' });
-    dataSwitcher.innerText = 'all time / last day';
-    const navigation = elementFactory('div', { class: 'country_info__navigation' }, typeOfCountingSwitcher, dataSwitcher);
+    // const typeOfCountingSwitcher = elementFactory('button', { class: 'typeOfCountingSwitcher' });
+    // typeOfCountingSwitcher.innerText = 'global / per100k';
+    // const dataSwitcher = elementFactory('button', { class: 'dataSwitcher' });
+    // dataSwitcher.innerText = 'all time / last day';
+
+    const input = elementFactory('input', { type: 'checkbox' });
+    const dateSwitcherSpan = elementFactory('span', { class: 'slider round' });
+    const dateSwitcher = elementFactory('label', { class: 'switch' }, input, dateSwitcherSpan);
+    const leftPartOfdateContainer = elementFactory('div', {});
+    leftPartOfdateContainer.innerText = 'all time';
+    const rightPartOfdateContainer = elementFactory('div', {});
+    rightPartOfdateContainer.innerText = 'last day';
+    const dateSwitcherContainer = elementFactory('div', { class: 'dateSwitcherContainer' }, leftPartOfdateContainer, dateSwitcher, rightPartOfdateContainer);
+
+    const typeOfCountingSwitcherSpan = elementFactory('span', { class: 'slider round' });
+    const typeOfCountingSwitcher = elementFactory('label', { class: 'switch' }, input.cloneNode(), typeOfCountingSwitcherSpan);
+    const leftPartOftypeContainer = elementFactory('div', {});
+    leftPartOftypeContainer.innerText = 'per100k';
+    const rightPartOftypeContainer = elementFactory('div', {});
+    rightPartOftypeContainer.innerText = 'absolute';
+    const typeSwitcherContainer = elementFactory('div', { class: 'typeSwitcherContainer' }, leftPartOftypeContainer, typeOfCountingSwitcher, rightPartOftypeContainer);
+
+    const navigation = elementFactory('div', { class: 'country_info__navigation' }, dateSwitcherContainer, typeSwitcherContainer);
 
     const tableHeaderCountOfRecovered = elementFactory('th', {});
-    tableHeaderCountOfRecovered.innerText = 'CountOfRecovered';
+    tableHeaderCountOfRecovered.innerText = 'Count of recovered';
     const tableHeaderCountOfDeath = elementFactory('th', {});
-    tableHeaderCountOfDeath.innerText = 'CountOfDeath';
+    tableHeaderCountOfDeath.innerText = 'Count of death';
     const tableHeaderCountOfDesease = elementFactory('th', {});
-    tableHeaderCountOfDesease.innerText = 'CountOfDesease';
+    tableHeaderCountOfDesease.innerText = 'Count of desease';
     const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
 
     const tableContentCountOfRecovered = elementFactory('td', { class: 'country_info__CountOfRecovered' });
@@ -128,8 +146,21 @@ export default class CovidDashboardView extends EventEmitter {
 
     const table = elementFactory('table', { class: 'country_info__table' }, tableHeader, tableContent);
     const container = elementFactory('div', { class: 'country_info' }, navigation, table);
-
     getElement('body').appendChild(container);
+
+    dateSwitcherSpan.addEventListener('click', () => {
+      this.model.isCountingForLastDay = !this.model.isCountingForLastDay;
+      console.log(this.model.isCountingForLastDay);
+      console.log(this.model.isCountingAbsolute);
+      console.log('DATE');
+    });
+
+    typeOfCountingSwitcherSpan.addEventListener('click', () => {
+      this.model.isCountingAbsolute = !this.model.isCountingAbsolute;
+      console.log(this.model.isCountingForLastDay);
+      console.log(this.model.isCountingAbsolute);
+      console.log('TYPE');
+    });
   }
 
   setUpLocalListeners() {
