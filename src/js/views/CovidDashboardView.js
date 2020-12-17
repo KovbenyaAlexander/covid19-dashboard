@@ -105,6 +105,33 @@ export default class CovidDashboardView extends EventEmitter {
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  displayInfoAboutCountry() {
+    const typeOfCountingSwitcher = elementFactory('button', { class: 'typeOfCountingSwitcher' });
+    typeOfCountingSwitcher.innerText = 'global / per100k';
+    const dataSwitcher = elementFactory('button', { class: 'dataSwitcher' });
+    dataSwitcher.innerText = 'all time / last day';
+    const navigation = elementFactory('div', { class: 'country_info__navigation' }, typeOfCountingSwitcher, dataSwitcher);
+
+    const tableHeaderCountOfRecovered = elementFactory('th', {});
+    tableHeaderCountOfRecovered.innerText = 'CountOfRecovered';
+    const tableHeaderCountOfDeath = elementFactory('th', {});
+    tableHeaderCountOfDeath.innerText = 'CountOfDeath';
+    const tableHeaderCountOfDesease = elementFactory('th', {});
+    tableHeaderCountOfDesease.innerText = 'CountOfDesease';
+    const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
+
+    const tableContentCountOfRecovered = elementFactory('td', { class: 'country_info__CountOfRecovered' });
+    const tableContentCountOfDeath = elementFactory('td', { class: 'country_info__CountOfDeath' });
+    const tableContentCountOfDesease = elementFactory('td', { class: 'country_info__CountOfDesease' });
+    const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
+
+    const table = elementFactory('table', { class: 'country_info__table' }, tableHeader, tableContent);
+    const container = elementFactory('div', { class: 'country_info' }, navigation, table);
+
+    getElement('body').appendChild(container);
+  }
+
   setUpLocalListeners() {
     this.button.addEventListener('click', () => {
       this.emit('nextprop');
