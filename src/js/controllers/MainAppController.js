@@ -4,7 +4,12 @@ import CovidDashboardView from '../views/CovidDashboardView';
 export default class MainAppController {
   constructor() {
     this.model = new CovidDate();
-    this.props = ['TotalConfirmed', 'TotalDeaths', 'TotalRecovered', 'NewConfirmed', 'NewDeaths', 'NewRecovered'];
+    this.props = ['TotalConfirmed', 'TotalDeaths', 'TotalRecovered', 'NewConfirmed', 'NewDeaths', 'NewRecovered', 'totalDeathPer100k',
+      'newConfirmedPer100k',
+      'newRecoveredPer100k',
+      'totalConfirmedPer100k',
+      'totalDeathPer100k',
+      'totalRecoveredPer100k'];
     this.propId = 0;
     this.dashboardView = new CovidDashboardView();
     this.setUplocalListeners();
