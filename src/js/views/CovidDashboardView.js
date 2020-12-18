@@ -183,20 +183,35 @@ export default class CovidDashboardView extends EventEmitter {
   }
 
   setUpLocalListeners() {
-    this.button.addEventListener('click', () => {
-      this.emit('nextprop');
+    this.tableButtonNext.addEventListener('click', () => {
+      if (this.tableCurrentProp < this.properties.length - 1) {
+        this.tableCurrentProp += 1;
+      } else {
+        this.tableCurrentProp = 0;
+      }
+      this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+    });
+    this.periodInput.addEventListener('change', () => {
+      this.isLastDay = !this.isLastDay;
+      this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
+      this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+    });
+    this.populationInput.addEventListener('change', () => {
+      this.isPopulation = !this.isPopulation;
+      this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
+      this.showCollumnTable(this.properties[this.tableCurrentProp].name);
     });
 
     this.tableFilterInput.addEventListener('keyup', (e) => {
-      const nameSpans = getElements('.country-span');
+      const nameSpans = getElements('.cell-name');
       const searchString = e.target.value.toLowerCase();
       nameSpans.forEach((span) => {
         if (span.textContent.toLowerCase().indexOf(searchString) !== -1) {
           // eslint-disable-next-line no-param-reassign
-          span.closest('div').style.display = 'flex';
+          span.closest('.table-row').classList.remove('row-hide');
         } else {
           // eslint-disable-next-line no-param-reassign
-          span.closest('div').style.display = 'none';
+          span.closest('.table-row').classList.add('row-hide');
         }
       });
     });
