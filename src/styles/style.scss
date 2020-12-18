@@ -1,6 +1,36 @@
-.chart_container {
-  position: relative;
-  width: 30rem;
-  margin: 0 auto;
-  text-align: center;
+:root {
+  font-size: 10px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+
+  .chart_container {
+    position: relative;
+    width: 40rem;
+    margin: 0 auto;
+    text-align: center;
+
+    .chart_title_container {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-evenly;
+      font-size: 2rem;
+      align-items: center;
+      color: rgb(54, 54, 54);
+
+      .fas {
+        &:hover {
+          color: #000000;
+          transform: scale(1.5);
+        }
+      }
+    }
+  }
 }
