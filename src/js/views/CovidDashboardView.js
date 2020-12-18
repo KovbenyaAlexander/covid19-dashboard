@@ -60,15 +60,44 @@ export default class CovidDashboardView extends EventEmitter {
     });
   }
 
-  displayTable(value) {
-    clearElement(getElement('body'));
+  /**
+   * Displays table with coutries list on page.
+   *
+   * @param {string} value Property name to show in table.
+   */
+  showCollumnTable(value) {
+    const active = getElements('.cell-active');
+    active.forEach((el) => {
+      el.classList.remove('cell-active');
+    });
+    this.tableHeader.textContent = _.find(this.properties, ['name', value]).header;
+    const propEls = getElements(`[data-property=${value}]`);
+    propEls.forEach((el) => {
+      el.classList.add('cell-active');
+    });
+    this.sortTable();
+  }
+
+  /**
+   * Displays table with coutries list on page.
+   */
+  displayTable() {
+    clearElement(this.table);
     const rows = [];
-    const header = elementFactory('div', { style: 'font-size:26px;' }, `${value}`);
+    this.tableHeader.textContent = _.find(this.properties, ['name', this.properties[0].name]).header;
     this.model.data.CountriesInfo.forEach((country) => {
-      const name = elementFactory('span', { class: 'country-span' }, `${country.Country}`);
-      const prop = elementFactory('span', {}, `${country[value]}`);
-      const flag = elementFactory('img', { src: country.flag, style: 'width:50px;height:50px' }, '');
-      const row = elementFactory('div', { style: 'display: flex; column-gap:10px; align-items:center; border:1px solid black' }, name, prop, flag);
+      const name = elementFactory('div', { class: 'table-cell cell-name' }, `${country.Country}`);
+      const props = [];
+      this.properties.forEach((property) => {
+        let active = '';
+        if (property.name === this.properties[0].name) active = 'cell-active';
+        const prop = elementFactory('div',
+          { class: `table-cell cell-numeric ${active}`, 'data-property': property.name },
+          `${country[property.name]}`);
+        props.push(prop);
+      });
+      const flag = elementFactory('img', { src: country.flag, class: 'flag-img' }, '');
+      const row = elementFactory('div', { class: 'table-row' }, flag, name, ...props);
 
       row.onclick = () => {
         // eslint-disable-next-line no-alert
@@ -77,9 +106,11 @@ export default class CovidDashboardView extends EventEmitter {
 
       rows.push(row);
     });
-
-    const container = elementFactory('div', { style: 'width:500px;' }, this.button, this.tableFilterInput, header, ...rows);
-    getElement('body').appendChild(container);
+    rows.forEach((row) => {
+      this.table.appendChild(row);
+    });
+    this.sortTable();
+    this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
   }
 
   // eslint-disable-next-line class-methods-use-this
