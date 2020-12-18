@@ -3,11 +3,25 @@ import {
   elementFactory, clearElement, getElement, getElements,
 } from '../helpers/domElementsHelper';
 
+import properties from '../helpers/properties';
+
+const _ = require('lodash');
+
 export default class CovidDashboardView extends EventEmitter {
   constructor() {
     super();
     this.model = [];
     this.evnts = {};
+    this.createTableContainer();
+    this.setUpLocalListeners();
+
+    this.properties = properties;
+
+    this.isLastDay = false;
+    this.isPopulation = false;
+
+    this.tableCurrentProp = 0;
+  }
   /**
    * Creates application default page layer without any data.
    */
