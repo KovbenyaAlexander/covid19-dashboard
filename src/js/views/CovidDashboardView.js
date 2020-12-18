@@ -21,6 +21,7 @@ export default class CovidDashboardView extends EventEmitter {
 
     this.isLastDay = false;
     this.isPopulation = false;
+    this.selectedCountry = null;
 
     this.tableCurrentProp = 0;
   }
@@ -104,6 +105,8 @@ export default class CovidDashboardView extends EventEmitter {
       row.onclick = () => {
         // eslint-disable-next-line no-alert
         alert(country.Country);
+        this.selectedCountry = country.Country;
+        this.updateCovidInfoTable();
       };
 
       rows.push(row);
@@ -216,11 +219,13 @@ export default class CovidDashboardView extends EventEmitter {
       this.isLastDay = !this.isLastDay;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+      this.updateCovidInfoTable();
     });
     this.populationInput.addEventListener('change', () => {
       this.isPopulation = !this.isPopulation;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+      this.updateCovidInfoTable();
     });
 
     this.tableFilterInput.addEventListener('keyup', (e) => {
@@ -236,5 +241,44 @@ export default class CovidDashboardView extends EventEmitter {
         }
       });
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  displayCovidInfoTable() {
+    const tableHeaderCountOfRecovered = elementFactory('th', {});
+    tableHeaderCountOfRecovered.innerText = 'Count of recovered';
+    const tableHeaderCountOfDeath = elementFactory('th', {});
+    tableHeaderCountOfDeath.innerText = 'Count of death';
+    const tableHeaderCountOfDesease = elementFactory('th', {});
+    tableHeaderCountOfDesease.innerText = 'Count of desease';
+    const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
+
+    const tableContentCountOfRecovered = elementFactory('td', { class: 'covid_info__CountOfRecovered' });
+    const tableContentCountOfDeath = elementFactory('td', { class: 'covid_info__CountOfDeath' });
+    const tableContentCountOfDesease = elementFactory('td', { class: 'covid_info__CountOfDesease' });
+    const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
+
+    const table = elementFactory('table', { class: 'covid_info__table' }, tableHeader, tableContent);
+    const container = elementFactory('div', { class: 'covid_info' }, table);
+    getElement('body').appendChild(container);
+  }
+
+  updateCovidInfoTable() {
+    let data;
+    if (this.selectedCountry) {
+      data = this.model.data.CountriesInfo.find((item) => item.Country === this.selectedCountry);
+    } else {
+      data = this.model.data.GlobalInfo;
+    }
+    this.drawCovidInfoTable(data);
+  }
+
+  drawCovidInfoTable(data) {
+    const countOfDesease = document.querySelector('.covid_info__CountOfDesease');
+    const countOfDeath = document.querySelector('.covid_info__CountOfDeath');
+    const countOfRecovered = document.querySelector('.covid_info__CountOfRecovered');
+    countOfDesease.innerText = data[this.properties[0].name];
+    countOfDeath.innerText = data[this.properties[1].name];
+    countOfRecovered.innerText = data[this.properties[2].name];
   }
 }
