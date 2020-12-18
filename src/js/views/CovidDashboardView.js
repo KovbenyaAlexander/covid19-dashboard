@@ -1,3 +1,4 @@
+import Chart from 'chart.js';
 import EventEmitter from '../models/EventEmitter';
 import {
   elementFactory, clearElement, getElement, getElements,
@@ -11,6 +12,7 @@ export default class CovidDashboardView extends EventEmitter {
   constructor() {
     super();
     this.model = [];
+    this.chartData = [];
     this.evnts = {};
     this.createTableContainer();
     this.setUpLocalListeners();
@@ -117,29 +119,48 @@ export default class CovidDashboardView extends EventEmitter {
   displayChart() {
     const chartContainer = elementFactory('div', { class: 'chart_container' }, '');
     const canvas = elementFactory('canvas', { id: 'chart', style: 'width: 2; height: 1' }, '');
+    const chartTitleContainer = elementFactory('div', { class: 'chart_title_container' }, '');
     const chartTitle = elementFactory('h3', { class: 'chart_title' }, '');
+    const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
+    const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
     chartTitle.textContent = 'Total Cases';
 
-    const totalCases = [];
+    const totalCases = [[], [], []];
     const lastUpdate = [];
-    this.model.data.timeline.forEach((item) => {
-      totalCases.push(item.total_cases);
+    this.chartData.forEach((item) => {
+      totalCases[0].push(item.total_cases);
+      totalCases[1].push(item.total_deaths);
+      totalCases[2].push(item.total_recovered);
       lastUpdate.push(`${item.last_update.split('-')[1]} ${item.last_update.split('-')[0]}`);
     });
     lastUpdate.reverse();
-    totalCases.reverse();
+    totalCases[0].reverse();
+    totalCases[1].reverse();
+    totalCases[2].reverse();
 
     getElement('body').appendChild(chartContainer);
-    getElement('.chart_container').appendChild(canvas);
-    getElement('.chart_container').appendChild(chartTitle);
+    chartContainer.appendChild(canvas);
+    chartContainer.appendChild(chartTitleContainer);
+    chartTitleContainer.appendChild(leftArrow);
+    chartTitleContainer.appendChild(chartTitle);
+    chartTitleContainer.appendChild(rightArrow);
 
-    chartTitle.addEventListener('click', () => {
-      clearElement(totalCases);
-      this.model.data.timeline.forEach((item) => {
-        totalCases.push(item.total_deaths);
-        chartTitle.textContent = 'Total Deaths';
-      });
-      totalCases.reverse();
+    let yAxeIndex = 0;
+
+    rightArrow.addEventListener('click', () => {
+      yAxeIndex += 1;
+      const i = yAxeIndex % 3;
+      // eslint-disable-next-line no-use-before-define
+      myChart.data.datasets[0].data = totalCases[i];
+      // eslint-disable-next-line no-use-before-define
+      myChart.update();
+    });
+
+    leftArrow.addEventListener('click', () => {
+      yAxeIndex -= 1;
+      const i = Math.abs(yAxeIndex % 3);
+      // eslint-disable-next-line no-use-before-define, prefer-destructuring
+      myChart.data.datasets[0].data = totalCases[i];
       // eslint-disable-next-line no-use-before-define
       myChart.update();
     });
@@ -155,7 +176,7 @@ export default class CovidDashboardView extends EventEmitter {
         labels: lastUpdate,
         datasets: [{
           label: 'Total Cases',
-          data: totalCases,
+          data: totalCases[0],
           backgroundColor: 'rgba(247, 202, 80, 0.9)',
           borderColor: 'rgba(247, 202, 80, 1)',
           borderWidth: 1,

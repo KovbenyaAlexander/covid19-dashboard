@@ -19,6 +19,7 @@ export default class MainAppController {
   setUplocalListeners() {
     this.model.on('hasdata', () => {
       this.dashboardView.model = this.model;
+      this.dashboardView.chartData = this.model.data.timeline;
       this.displayTable();
       this.displayChart();
     });
