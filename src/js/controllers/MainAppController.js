@@ -20,8 +20,8 @@ export default class MainAppController {
     this.dashboardView.displayCovidInfoTable();
   }
 
-  updateInfoAboutCountry() {
-    this.dashboardView.updateInfoAboutCountry();
+  updateCovidInfoTable() {
+    this.dashboardView.updateCovidInfoTable();
   }
 
   setUplocalListeners() {
@@ -30,7 +30,7 @@ export default class MainAppController {
       this.displayTable();
       this.displayChart();
       this.displayCovidInfoTable();
-      this.updateInfoAboutCountry();
+      this.updateCovidInfoTable();
     });
   }
 }

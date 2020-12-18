@@ -95,9 +95,15 @@
   border-right: 2px solid black;
 }
 
+
+/*---covid-table---*/
 .country_info{
   position: absolute;
   right: 0px;
   top: 0px;
   margin: 50px;
+}
+
+.country_info__table > tr > th, td{
+  border: 1px solid black;
 }
