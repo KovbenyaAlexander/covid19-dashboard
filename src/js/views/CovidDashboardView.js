@@ -252,32 +252,12 @@ export default class CovidDashboardView extends EventEmitter {
     this.drawCovidInfoTable(data);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   drawCovidInfoTable(data) {
-    const isCountingAbsolute = !this.isPopulation;
     const countOfDesease = document.querySelector('.covid_info__CountOfDesease');
     const countOfDeath = document.querySelector('.covid_info__CountOfDeath');
     const countOfRecovered = document.querySelector('.covid_info__CountOfRecovered');
-
-    if (this.isLastDay && isCountingAbsolute) {
-      countOfDesease.innerText = data.NewConfirmed;
-      countOfDeath.innerText = data.NewDeaths;
-      countOfRecovered.innerText = data.NewRecovered;
-    }
-    if (!this.isLastDay && isCountingAbsolute) {
-      countOfDesease.innerText = data.TotalConfirmed;
-      countOfDeath.innerText = data.TotalDeaths;
-      countOfRecovered.innerText = data.TotalRecovered;
-    }
-    if (this.isLastDay && !isCountingAbsolute) {
-      countOfDesease.innerText = data.newConfirmedPer100k;
-      countOfDeath.innerText = data.newDeathPer100k;
-      countOfRecovered.innerText = data.newRecoveredPer100k;
-    }
-    if (!this.isLastDay && !isCountingAbsolute) {
-      countOfDesease.innerText = data.totalConfirmedPer100k;
-      countOfDeath.innerText = data.totalDeathPer100k;
-      countOfRecovered.innerText = data.totalRecoveredPer100k;
-    }
+    countOfDesease.innerText = data[this.properties[0].name];
+    countOfDeath.innerText = data[this.properties[1].name];
+    countOfRecovered.innerText = data[this.properties[2].name];
   }
 }
