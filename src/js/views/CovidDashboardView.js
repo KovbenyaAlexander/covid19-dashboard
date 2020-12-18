@@ -22,6 +22,7 @@ export default class CovidDashboardView extends EventEmitter {
 
     this.tableCurrentProp = 0;
   }
+
   /**
    * Creates application default page layer without any data.
    */
@@ -47,6 +48,16 @@ export default class CovidDashboardView extends EventEmitter {
       this.tableButtonPrev, this.tableButtonNext, this.tableFilterInput, this.tableHeader, this.table);
     getElement('body').appendChild(this.container);
   }
+
+  /**
+   * Sotrs contries table by current active property.
+   */
+  sortTable() {
+    const rows = getElements('.cell-active');
+    const rowsArr = [].slice.call(rows).sort((a, b) => (Number(a.textContent) < Number(b.textContent) ? 1 : -1));
+    rowsArr.forEach((row) => {
+      this.table.appendChild(row.closest('.table-row'));
+    });
   }
 
   displayTable(value) {
