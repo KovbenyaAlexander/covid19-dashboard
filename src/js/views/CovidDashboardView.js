@@ -1,3 +1,4 @@
+import Chart from 'chart.js';
 import EventEmitter from '../models/EventEmitter';
 import {
   elementFactory, clearElement, getElement, getElements,
