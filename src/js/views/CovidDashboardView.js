@@ -8,10 +8,31 @@ export default class CovidDashboardView extends EventEmitter {
     super();
     this.model = [];
     this.evnts = {};
-    this.button = elementFactory('button', {}, 'Refresh');
+  /**
+   * Creates application default page layer without any data.
+   */
+  createTableContainer() {
+    this.tableButtonPrev = elementFactory('button', {}, 'Prev');
+    this.tableButtonNext = elementFactory('button', {}, 'Next');
     this.tableFilterInput = elementFactory('input', {}, '');
 
-    this.setUpLocalListeners();
+    this.tableHeader = elementFactory('div', { style: 'font-size:26px;' }, properties[0].header);
+
+    const periodSwitchHeader = elementFactory('span', {}, 'Period:');
+    this.periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last' }, '');
+    this.togglePeriodButton = elementFactory('label', { class: 'switch' }, this.periodInput, periodSlider);
+
+    const populationSwitchHeader = elementFactory('span', {}, 'Population:');
+    this.populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
+    this.togglePopulationButton = elementFactory('label', { class: 'switch' }, this.populationInput, populationSlider);
+
+    this.table = elementFactory('div', { class: 'country-table' }, '');
+    this.container = elementFactory('div', { class: 'country-table-container' }, periodSwitchHeader, this.togglePeriodButton, populationSwitchHeader, this.togglePopulationButton,
+      this.tableButtonPrev, this.tableButtonNext, this.tableFilterInput, this.tableHeader, this.table);
+    getElement('body').appendChild(this.container);
+  }
   }
 
   displayTable(value) {
