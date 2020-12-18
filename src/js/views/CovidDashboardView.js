@@ -195,11 +195,13 @@ export default class CovidDashboardView extends EventEmitter {
       this.isLastDay = !this.isLastDay;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+      this.updateInfoAboutCountry();
     });
     this.populationInput.addEventListener('change', () => {
       this.isPopulation = !this.isPopulation;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+      this.updateInfoAboutCountry();
     });
 
     this.tableFilterInput.addEventListener('keyup', (e) => {
@@ -215,5 +217,54 @@ export default class CovidDashboardView extends EventEmitter {
         }
       });
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  displayCovidInfoTable() {
+    const tableHeaderCountOfRecovered = elementFactory('th', {});
+    tableHeaderCountOfRecovered.innerText = 'Count of recovered';
+    const tableHeaderCountOfDeath = elementFactory('th', {});
+    tableHeaderCountOfDeath.innerText = 'Count of death';
+    const tableHeaderCountOfDesease = elementFactory('th', {});
+    tableHeaderCountOfDesease.innerText = 'Count of desease';
+    const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
+
+    const tableContentCountOfRecovered = elementFactory('td', { class: 'country_info__CountOfRecovered' });
+    const tableContentCountOfDeath = elementFactory('td', { class: 'country_info__CountOfDeath' });
+    const tableContentCountOfDesease = elementFactory('td', { class: 'country_info__CountOfDesease' });
+    const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
+
+    const table = elementFactory('table', { class: 'country_info__table' }, tableHeader, tableContent);
+    const container = elementFactory('div', { class: 'country_info' }, table);
+    getElement('body').appendChild(container);
+  }
+
+  updateInfoAboutCountry() {
+    const { data } = this.model;
+    const isCountingAbsolute = this.isPopulation;
+    const countOfDesease = document.querySelector('.country_info__CountOfDesease');
+    const countOfDeath = document.querySelector('.country_info__CountOfDeath');
+    const countOfRecovered = document.querySelector('.country_info__CountOfRecovered');
+
+    if (this.isLastDay && isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.NewConfirmed;
+      countOfDeath.innerText = data.GlobalInfo.NewDeaths;
+      countOfRecovered.innerText = data.GlobalInfo.NewRecovered;
+    }
+    if (!this.isLastDay && isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.TotalConfirmed;
+      countOfDeath.innerText = data.GlobalInfo.TotalDeaths;
+      countOfRecovered.innerText = data.GlobalInfo.TotalRecovered;
+    }
+    if (this.isLastDay && !isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.newConfirmedPer100k;
+      countOfDeath.innerText = data.GlobalInfo.newDeathPer100k;
+      countOfRecovered.innerText = data.GlobalInfo.newRecoveredPer100k;
+    }
+    if (!this.isLastDay && !isCountingAbsolute) {
+      countOfDesease.innerText = data.GlobalInfo.totalConfirmedPer100k;
+      countOfDeath.innerText = data.GlobalInfo.totalDeathPer100k;
+      countOfRecovered.innerText = data.GlobalInfo.totalRecoveredPer100k;
+    }
   }
 }

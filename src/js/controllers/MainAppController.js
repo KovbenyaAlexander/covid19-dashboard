@@ -16,11 +16,21 @@ export default class MainAppController {
     this.dashboardView.displayChart(value);
   }
 
+  displayCovidInfoTable() {
+    this.dashboardView.displayCovidInfoTable();
+  }
+
+  updateInfoAboutCountry() {
+    this.dashboardView.updateInfoAboutCountry();
+  }
+
   setUplocalListeners() {
     this.model.on('hasdata', () => {
       this.dashboardView.model = this.model;
       this.displayTable();
       this.displayChart();
+      this.displayCovidInfoTable();
+      this.updateInfoAboutCountry();
     });
   }
 }
