@@ -97,13 +97,19 @@
 
 
 /*---covid-table---*/
-.country_info{
+.covid_info{
   position: absolute;
   right: 0px;
   top: 0px;
   margin: 50px;
 }
 
-.country_info__table > tr > th, td{
+
+.covid_info__table{
+  border-collapse: collapse;
+}
+
+.covid_info__table > tr > th, td{
   border: 1px solid black;
+  padding: 5px;
 }

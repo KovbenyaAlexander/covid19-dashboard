@@ -232,13 +232,13 @@ export default class CovidDashboardView extends EventEmitter {
     tableHeaderCountOfDesease.innerText = 'Count of desease';
     const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
 
-    const tableContentCountOfRecovered = elementFactory('td', { class: 'country_info__CountOfRecovered' });
-    const tableContentCountOfDeath = elementFactory('td', { class: 'country_info__CountOfDeath' });
-    const tableContentCountOfDesease = elementFactory('td', { class: 'country_info__CountOfDesease' });
+    const tableContentCountOfRecovered = elementFactory('td', { class: 'covid_info__CountOfRecovered' });
+    const tableContentCountOfDeath = elementFactory('td', { class: 'covid_info__CountOfDeath' });
+    const tableContentCountOfDesease = elementFactory('td', { class: 'covid_info__CountOfDesease' });
     const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
 
-    const table = elementFactory('table', { class: 'country_info__table' }, tableHeader, tableContent);
-    const container = elementFactory('div', { class: 'country_info' }, table);
+    const table = elementFactory('table', { class: 'covid_info__table' }, tableHeader, tableContent);
+    const container = elementFactory('div', { class: 'covid_info' }, table);
     getElement('body').appendChild(container);
   }
 
@@ -249,15 +249,15 @@ export default class CovidDashboardView extends EventEmitter {
     } else {
       data = this.model.data.GlobalInfo;
     }
-    this.draw(data);
+    this.drawCovidInfoTable(data);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  draw(data) {
-    const isCountingAbsolute = this.isPopulation;
-    const countOfDesease = document.querySelector('.country_info__CountOfDesease');
-    const countOfDeath = document.querySelector('.country_info__CountOfDeath');
-    const countOfRecovered = document.querySelector('.country_info__CountOfRecovered');
+  drawCovidInfoTable(data) {
+    const isCountingAbsolute = !this.isPopulation;
+    const countOfDesease = document.querySelector('.covid_info__CountOfDesease');
+    const countOfDeath = document.querySelector('.covid_info__CountOfDeath');
+    const countOfRecovered = document.querySelector('.covid_info__CountOfRecovered');
 
     if (this.isLastDay && isCountingAbsolute) {
       countOfDesease.innerText = data.NewConfirmed;
