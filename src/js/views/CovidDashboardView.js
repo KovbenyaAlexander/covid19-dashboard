@@ -107,8 +107,8 @@ export default class CovidDashboardView extends EventEmitter {
 
       row.onclick = () => {
         // eslint-disable-next-line no-alert
-        alert(country.Country);
-        this.selectedCountry = country.Country;
+        alert(`${country.Country} || ${country.CountryCode}`);
+        this.selectedCountry = country.CountryCode;
         this.updateCovidInfoTable();
       };
 
@@ -271,7 +271,7 @@ export default class CovidDashboardView extends EventEmitter {
   updateCovidInfoTable() {
     let data;
     if (this.selectedCountry) {
-      data = this.model.data.CountriesInfo.find((item) => item.Country === this.selectedCountry);
+      data = this.model.data.CountriesInfo.find((item) => item.CountryCode === this.selectedCountry);
     } else {
       data = this.model.data.GlobalInfo;
     }
@@ -309,21 +309,21 @@ export default class CovidDashboardView extends EventEmitter {
       this.currentMarkers.push(circle);
       circle.addTo(this.map);
     });
+
     this.map.addEventListener('click', (event) => {
-      console.log(event.latlng.lat);
-      console.log(event.latlng.lng);
-      this.getCountryBameByCoords(event.latlng.lat, event.latlng.lng);
+      const countryCodeResponse = this.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
+      countryCodeResponse.then((code) => {
+        this.selectedCountry = code;
+        this.updateCovidInfoTable();
+      });
     });
   }
 
   mapUpdate() {
-    console.log(this.layer);
-    this.currentMarkers.forEach((circle) => {
-      this.layer.remove(circle);
-    });
+    console.log('mapUpdate');
   }
 
-  async getCountryBameByCoords(lt, lg) {
+  async getCountryCodeBameByCoords(lt, lg) {
     async function reverseGeocoding(lat, log) {
       try {
         const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${log}&key=99ecf60eb3944fd69770b5c974614a6a&language=en`;
@@ -338,11 +338,11 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     const response = reverseGeocoding(lt, lg);
-    let name;
+    let code;
     await response.then((data) => {
-      name = data.results[0].components.country;
+      code = data.results[0].components.country_code.toUpperCase();
       alert(`${data.results[0].components.country} --> ${data.results[0].components.country_code}`);
     });
-    return name;
+    return code;
   }
 }
