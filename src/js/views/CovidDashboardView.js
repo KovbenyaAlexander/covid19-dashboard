@@ -1,3 +1,6 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-undef */
+/* eslint-disable new-cap */
 import Chart from 'chart.js';
 import EventEmitter from '../models/EventEmitter';
 import {
@@ -220,12 +223,14 @@ export default class CovidDashboardView extends EventEmitter {
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
       this.updateCovidInfoTable();
+      this.mapUpdate();
     });
     this.populationInput.addEventListener('change', () => {
       this.isPopulation = !this.isPopulation;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
       this.updateCovidInfoTable();
+      this.mapUpdate();
     });
 
     this.tableFilterInput.addEventListener('keyup', (e) => {
@@ -280,5 +285,39 @@ export default class CovidDashboardView extends EventEmitter {
     countOfDesease.innerText = data[this.properties[0].name];
     countOfDeath.innerText = data[this.properties[1].name];
     countOfRecovered.innerText = data[this.properties[2].name];
+  }
+
+  mapInit() {
+    const mapOptions = {
+      center: [53, 28],
+      zoom: 1,
+      worldCopyJump: true,
+    };
+    this.currentMarkers = [];
+    this.map = new L.map('map', mapOptions);
+    this.layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    this.map.addLayer(this.layer);
+    this.model.data.CountriesInfo.forEach((item) => {
+      const circleCenter = [item.lat, item.lng];
+      const circleOptions = {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0,
+      };
+      const circleSizeCoefficient = 7;
+      const circle = L.circle(circleCenter, item[properties[2].name] / circleSizeCoefficient, circleOptions);
+      this.currentMarkers.push(circle);
+      circle.addTo(this.map);
+    });
+    this.map.addEventListener('click', (event) => {
+      console.log(event.latlng.toString());
+    });
+  }
+
+  mapUpdate() {
+    console.log(this.layer);
+    this.currentMarkers.forEach((circle) => {
+      this.layer.remove(circle);
+    });
   }
 }
