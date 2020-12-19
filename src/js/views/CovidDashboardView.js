@@ -223,14 +223,14 @@ export default class CovidDashboardView extends EventEmitter {
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
       this.updateCovidInfoTable();
-      this.mapUpdate();
+      this.mapUpdate(this.properties[this.tableCurrentProp].name);
     });
     this.populationInput.addEventListener('change', () => {
       this.isPopulation = !this.isPopulation;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
       this.updateCovidInfoTable();
-      this.mapUpdate();
+      this.mapUpdate(this.properties[this.tableCurrentProp].name);
     });
 
     this.tableFilterInput.addEventListener('keyup', (e) => {
@@ -297,19 +297,20 @@ export default class CovidDashboardView extends EventEmitter {
     this.map = new L.map('map', mapOptions);
     this.layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
     this.map.addLayer(this.layer);
-    this.model.data.CountriesInfo.forEach((item) => {
-      const circleCenter = [item.lat, item.lng];
+    this.model.data.CountriesInfo.forEach((countryInfo) => {
+      const circleCenter = [countryInfo.lat, countryInfo.lng];
       const circleOptions = {
         color: 'red',
         fillColor: '#f03',
-        fillOpacity: 0,
+        fillOpacity: 0.5,
       };
       const circleSizeCoefficient = 7;
-      const circle = L.circle(circleCenter, item[properties[2].name] / circleSizeCoefficient, circleOptions);
+      const circle = L.circle(circleCenter, countryInfo[properties[0].name] / circleSizeCoefficient, circleOptions);
       this.currentMarkers.push(circle);
-      circle.addTo(this.map);
+      /*  circle.addTo(this.map);  */
     });
-
+    this.layerGroup = L.layerGroup(this.currentMarkers);
+    this.layerGroup.addTo(this.map);
     this.map.addEventListener('click', (event) => {
       const countryCodeResponse = this.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
       countryCodeResponse.then((code) => {
@@ -321,8 +322,30 @@ export default class CovidDashboardView extends EventEmitter {
     });
   }
 
-  mapUpdate() {
-    console.log('mapUpdate');
+  mapUpdate(currentPropOfData) {
+    this.currentMarkers.forEach((item) => this.layerGroup.removeLayer(item));
+    this.currentMarkers = [];
+    this.model.data.CountriesInfo.forEach((countryInfo) => {
+      const circleCenter = [countryInfo.lat, countryInfo.lng];
+      const circleOptions = {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5,
+      };
+      let circleSizeCoefficient = 0.1;
+      console.log(currentPropOfData);
+      if (currentPropOfData === 'TotalConfirmed') {
+        circleSizeCoefficient = 7;
+      } else if (currentPropOfData === 'totalConfirmedPer100k') {
+        circleSizeCoefficient = 0.03;
+      } else if (currentPropOfData === 'newConfirmedPer100k') {
+        circleSizeCoefficient = 0.0005;
+      }
+      const circle = L.circle(circleCenter, countryInfo[currentPropOfData] / circleSizeCoefficient, circleOptions);
+      this.currentMarkers.push(circle);
+    });
+    this.layerGroup = L.layerGroup(this.currentMarkers);
+    this.layerGroup.addTo(this.map);
   }
 
   async getCountryCodeBameByCoords(lt, lg) {
