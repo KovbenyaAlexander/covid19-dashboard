@@ -313,8 +313,10 @@ export default class CovidDashboardView extends EventEmitter {
     this.map.addEventListener('click', (event) => {
       const countryCodeResponse = this.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
       countryCodeResponse.then((code) => {
-        this.selectedCountry = code;
-        this.updateCovidInfoTable();
+        if (code) {
+          this.selectedCountry = code;
+          this.updateCovidInfoTable();
+        }
       });
     });
   }
@@ -340,9 +342,15 @@ export default class CovidDashboardView extends EventEmitter {
     const response = reverseGeocoding(lt, lg);
     let code;
     await response.then((data) => {
-      code = data.results[0].components.country_code.toUpperCase();
-      alert(`${data.results[0].components.country} --> ${data.results[0].components.country_code}`);
+      if (data.results[0].components.country_code) {
+        code = data.results[0].components.country_code.toUpperCase();
+        alert(`${data.results[0].components.country} --> ${data.results[0].components.country_code}`);
+      } else {
+        code = null;
+        alert('Results not found');
+      }
     });
+
     return code;
   }
 }
