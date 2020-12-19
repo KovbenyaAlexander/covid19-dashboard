@@ -310,7 +310,9 @@ export default class CovidDashboardView extends EventEmitter {
       circle.addTo(this.map);
     });
     this.map.addEventListener('click', (event) => {
-      console.log(event.latlng.toString());
+      console.log(event.latlng.lat);
+      console.log(event.latlng.lng);
+      this.getCountryBameByCoords(event.latlng.lat, event.latlng.lng);
     });
   }
 
@@ -319,5 +321,28 @@ export default class CovidDashboardView extends EventEmitter {
     this.currentMarkers.forEach((circle) => {
       this.layer.remove(circle);
     });
+  }
+
+  async getCountryBameByCoords(lt, lg) {
+    async function reverseGeocoding(lat, log) {
+      try {
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${log}&key=99ecf60eb3944fd69770b5c974614a6a&language=en`;
+        const res = await fetch(url);
+        const data = await res.json();
+        return data;
+      } catch (err) {
+        // eslint-disable-next-line no-alert
+        alert('Something went wrong');
+      }
+      return data;
+    }
+
+    const response = reverseGeocoding(lt, lg);
+    let name;
+    await response.then((data) => {
+      name = data.results[0].components.country;
+      alert(`${data.results[0].components.country} --> ${data.results[0].components.country_code}`);
+    });
+    return name;
   }
 }
