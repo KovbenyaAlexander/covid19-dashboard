@@ -41,7 +41,6 @@ export default class CovidDate extends EventEmitter {
         data.GlobalInfo.newRecoveredPer100k = Number(((data.GlobalInfo.NewRecovered / EARTH_POPULATION) * 100000).toFixed(5));
         data.GlobalInfo.newConfirmedPer100k = Number(((data.GlobalInfo.NewConfirmed / EARTH_POPULATION) * 100000).toFixed(5));
         console.log(data);
-
         return data;
       }
       // eslint-disable-next-line no-alert
@@ -58,6 +57,19 @@ export default class CovidDate extends EventEmitter {
   async fetchData(apiUrl) {
     try {
       const url = apiUrl;
+      const res = await fetch(url);
+      const data = await res.json();
+      return data;
+    } catch (err) {
+      // eslint-disable-next-line no-alert
+      alert('Data not found!');
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async getDataAboutCountryByName(name) {
+    try {
+      const url = `https://api.covid19api.com/total/dayone/country/${name}`;
       const res = await fetch(url);
       const data = await res.json();
       return data;
