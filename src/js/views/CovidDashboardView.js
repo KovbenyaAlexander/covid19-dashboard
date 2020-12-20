@@ -357,9 +357,8 @@ export default class CovidDashboardView extends EventEmitter {
       if (props) {
         const currentValue = this_.model.data.CountriesInfo.find((item) => item.CountryCode === props.iso_a2);
         if (currentValue) {
-          const currentProperties = this_.properties.find((item) => item.name === currentPropOfData);
           this._div.innerHTML = `<h4>${props.formal_en}  [${props.iso_a2}]</h4>
-          <h4>${currentProperties.header}: ${currentValue[currentPropOfData]}</h4>`;
+          <h4>Total confirmed: ${currentValue.TotalConfirmed}</h4>`;
         }
       } else {
         this._div.innerHTML = '';
@@ -385,7 +384,7 @@ export default class CovidDashboardView extends EventEmitter {
         : d > 1000000
           ? "#FF3939"
           : d > 100000
-            ? "#F6A6A6"
+            ? "#EC86A4"
             : d > 1000
               ? "#F5D1D1"
               : '#F1E8E8';
@@ -420,7 +419,6 @@ export default class CovidDashboardView extends EventEmitter {
     this.map.addLayer(this.layer);
 
     this.geojson.addEventListener('click', (event) => {
-      console.log(event);
       const countryCodeResponse = this_.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
       countryCodeResponse.then((code) => {
         if (code) {
@@ -429,6 +427,20 @@ export default class CovidDashboardView extends EventEmitter {
         }
       });
     });
+
+    /* ---legend--- */
+    this.legend = L.control({ position: 'bottomright' });
+    this.legend.onAdd = function (map) {
+      const div = L.DomUtil.create('div', 'info legend');
+      const grades = [0, 1000, 100000, 1000000, 10000000];
+      const labels = [];
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < grades.length; i += 1) {
+        div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+      }
+      return div;
+    };
+    this.legend.addTo(this.map);
   }
 
   mapUpdate(currentPropOfData) {
@@ -466,22 +478,17 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function getColor(d) {
-      if (d > maxValue * 0.8) {
-        return '#4d0000';
-      } else if (d > maxValue * 0.6) {
-        return '#800000';
-      } else if (d > maxValue * 0.5) {
-        return '#b30000';
+      if (d > maxValue * 0.5) {
+        // return '#660000';
+        return 'black';
       } else if (d > maxValue * 0.4) {
-        return '#e60000';
-      } else if (d > maxValue * 0.3) {
-        return '#ff1a1a';
-      } else if (d > maxValue * 0.2) {
-        return '#ff4d4d';
+        return '#b30000';
       } else if (d > maxValue * 0.1) {
-        return '#ff8080';
+        return '#EC86A4';
+      } else if (d > maxValue * 0.05) {
+        return '#ff6666';
       } else {
-        return '#ffcccc';
+        return '#ffe6e6';
       }
     }
 
@@ -539,6 +546,20 @@ export default class CovidDashboardView extends EventEmitter {
         }
       });
     });
+    /* ---legend--- */
+    // this.map.removeLayer(this.legend);
+    this.legend.onAdd = function (map) {
+      const div = L.DomUtil.create('div', 'info legend');
+      const grades = [0, 1000, 100000, 1000000, 10000000];
+      const labels = [];
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < grades.length; i += 1) {
+        div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+      }
+      return div;
+    };
+
+    this.legend.addTo(this.map);
   }
 
   async getCountryCodeBameByCoords(lt, lg) {
