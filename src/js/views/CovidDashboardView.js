@@ -38,6 +38,9 @@ export default class CovidDashboardView extends EventEmitter {
     this.selectedCountry = null;
 
     this.tableCurrentProp = 0;
+
+    this.aroundTheWorldCases = {};
+    this.myChart = {};
   }
 
   /**
@@ -63,7 +66,7 @@ export default class CovidDashboardView extends EventEmitter {
     this.table = elementFactory('div', { class: 'country-table' }, '');
     this.container = elementFactory('div', { class: 'country-table-container' }, periodSwitchHeader, this.togglePeriodButton, populationSwitchHeader, this.togglePopulationButton,
       this.tableButtonPrev, this.tableButtonNext, this.tableFilterInput, this.tableHeader, this.table);
-    getElement('body').appendChild(this.container);
+    getElement('body').prepend(this.container);
   }
 
   /**
@@ -118,9 +121,26 @@ export default class CovidDashboardView extends EventEmitter {
 
       row.onclick = () => {
         // eslint-disable-next-line no-alert
-        alert(`${country.Country} || ${country.CountryCode}`);
+        // alert(`${country.Country} || ${country.CountryCode}`);
         this.selectedCountry = country.CountryCode;
         this.updateCovidInfoTable();
+        this.emit('updatedata', country.Country);
+        setTimeout(() => {
+          this.aroundTheWorldCases.Cases_of_Infection = [];
+          this.aroundTheWorldCases.Cases_of_Deaths = [];
+          this.aroundTheWorldCases.Cases_of_Recovery = [];
+          this.aroundTheWorldCases.Dates_of_Updating = [];
+          this.chartData.forEach((item) => {
+            this.aroundTheWorldCases.Cases_of_Infection.push(item.Confirmed);
+            this.aroundTheWorldCases.Cases_of_Deaths.push(item.Deaths);
+            this.aroundTheWorldCases.Cases_of_Recovery.push(item.Recovered);
+            this.aroundTheWorldCases.Dates_of_Updating.push(`${item.Date.split('-')[1]} ${item.Date.split('-')[0]}`);
+          });
+          this.myChart.data.datasets[0].data = this.aroundTheWorldCases.Cases_of_Infection;
+          this.myChart.data.labels = this.aroundTheWorldCases.Dates_of_Updating;
+          this.myChart.options.title.text = `${this.chartData[0].Country}`;
+          this.myChart.update();
+        }, 1000);
       };
 
       rows.push(row);
@@ -140,7 +160,7 @@ export default class CovidDashboardView extends EventEmitter {
     const chartTitle = elementFactory('h3', { class: 'chart_title' }, '');
     const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
     const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
-    chartTitle.textContent = 'World Wide Cases of Infection';
+    chartTitle.textContent = 'Cases of Infection';
 
     getElement('body').appendChild(chartContainer);
     chartContainer.appendChild(canvas);
@@ -149,38 +169,37 @@ export default class CovidDashboardView extends EventEmitter {
     chartTitleContainer.appendChild(chartTitle);
     chartTitleContainer.appendChild(rightArrow);
 
-    // const aroundTheWorldCases = [[], [], []];
-    const aroundTheWorldCases = {
-      World_Wide_Cases_of_Infection: [],
-      World_Wide_Cases_of_Deaths: [],
-      World_Wide_Cases_of_Recovery: [],
+    this.aroundTheWorldCases = {
+      Cases_of_Infection: [],
+      Cases_of_Deaths: [],
+      Cases_of_Recovery: [],
       Dates_of_Updating: [],
     };
-    // const lastUpdate = [];
+
     this.chartData.forEach((item) => {
-      aroundTheWorldCases.World_Wide_Cases_of_Infection.push(item.total_cases);
-      aroundTheWorldCases.World_Wide_Cases_of_Deaths.push(item.total_deaths);
-      aroundTheWorldCases.World_Wide_Cases_of_Recovery.push(item.total_recovered);
-      aroundTheWorldCases.Dates_of_Updating.push(`${item.last_update.split('-')[1]} ${item.last_update.split('-')[0]}`);
+      this.aroundTheWorldCases.Cases_of_Infection.push(item.total_cases);
+      this.aroundTheWorldCases.Cases_of_Deaths.push(item.total_deaths);
+      this.aroundTheWorldCases.Cases_of_Recovery.push(item.total_recovered);
+      this.aroundTheWorldCases.Dates_of_Updating.push(`${item.last_update.split('-')[1]} ${item.last_update.split('-')[0]}`);
     });
 
-    aroundTheWorldCases.World_Wide_Cases_of_Infection.reverse();
-    aroundTheWorldCases.World_Wide_Cases_of_Deaths.reverse();
-    aroundTheWorldCases.World_Wide_Cases_of_Recovery.reverse();
-    aroundTheWorldCases.Dates_of_Updating.reverse();
+    this.aroundTheWorldCases.Cases_of_Infection.reverse();
+    this.aroundTheWorldCases.Cases_of_Deaths.reverse();
+    this.aroundTheWorldCases.Cases_of_Recovery.reverse();
+    this.aroundTheWorldCases.Dates_of_Updating.reverse();
 
     let i = 0;
 
     rightArrow.addEventListener('click', () => {
       i += 1;
-      const key = Object.keys(aroundTheWorldCases)[i % 3];
+      const key = Object.keys(this.aroundTheWorldCases)[i % 3];
       // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
+      this.myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
       // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].data = aroundTheWorldCases[key];
-      chartTitle.textContent = Object.keys(aroundTheWorldCases)[i % 3].split('_').join(' ');
+      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
+      chartTitle.textContent = Object.keys(this.aroundTheWorldCases)[i % 3].split('_').join(' ');
       // eslint-disable-next-line no-use-before-define
-      myChart.update();
+      this.myChart.update();
     });
 
     leftArrow.addEventListener('click', () => {
@@ -188,14 +207,14 @@ export default class CovidDashboardView extends EventEmitter {
       if (i < 0) {
         i = 2;
       }
-      const key = Object.keys(aroundTheWorldCases)[(i % 3)];
+      const key = Object.keys(this.aroundTheWorldCases)[(i % 3)];
       // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
+      this.myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
       // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].data = aroundTheWorldCases[key];
-      chartTitle.textContent = Object.keys(aroundTheWorldCases)[i % 3].split('_').join(' ');
+      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
+      chartTitle.textContent = Object.keys(this.aroundTheWorldCases)[i % 3].split('_').join(' ');
       // eslint-disable-next-line no-use-before-define
-      myChart.update();
+      this.myChart.update();
     });
 
     // eslint-disable-next-line no-undef
@@ -203,13 +222,13 @@ export default class CovidDashboardView extends EventEmitter {
 
     const ctx = document.querySelector('canvas').getContext('2d');
     // eslint-disable-next-line no-undef
-    const myChart = new Chart(ctx, {
+    this.myChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: aroundTheWorldCases.Dates_of_Updating,
+        labels: this.aroundTheWorldCases.Dates_of_Updating,
         datasets: [{
-          label: 'World Wide Cases of Infection',
-          data: aroundTheWorldCases.World_Wide_Cases_of_Infection,
+          label: 'Cases of Infection',
+          data: this.aroundTheWorldCases.Cases_of_Infection,
           backgroundColor: 'rgba(247, 202, 80, 0.9)',
           borderColor: 'rgba(247, 202, 80, 1)',
           borderWidth: 1,
@@ -219,6 +238,10 @@ export default class CovidDashboardView extends EventEmitter {
         }],
       },
       options: {
+        title: {
+          display: true,
+          text: 'World Wide Info',
+        },
         scales: {
           yAxes: [{
             ticks: {
@@ -316,7 +339,9 @@ export default class CovidDashboardView extends EventEmitter {
 
   mapInit() {
     const o = this;
+    // eslint-disable-next-line no-console
     console.log('+');
+    // eslint-disable-next-line no-console
     console.log(cData);
 
     const mapOptions = {
@@ -347,6 +372,7 @@ export default class CovidDashboardView extends EventEmitter {
       const countryCodeResponse = this.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
       countryCodeResponse.then((code) => {
         if (code) {
+          //-------------------------------------
           this.selectedCountry = code;
           this.updateCovidInfoTable();
         }
@@ -396,6 +422,7 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function zoomToFeature(e) {
+      // eslint-disable-next-line no-console
       console.log(e.target);
       this.map.fitBounds(e.target.getBounds());
     }
@@ -448,6 +475,7 @@ export default class CovidDashboardView extends EventEmitter {
         fillOpacity: 0.5,
       };
       let circleSizeCoefficient = 0.1;
+      // eslint-disable-next-line no-console
       console.log(currentPropOfData);
       if (currentPropOfData === 'TotalConfirmed') {
         circleSizeCoefficient = 7;
