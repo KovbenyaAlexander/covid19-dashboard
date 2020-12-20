@@ -21,7 +21,8 @@
 }
 
 body {
-  display: flex;
+
+ main {
 
   .country-table-container {
     @include flex-div;
@@ -139,4 +140,37 @@ body {
       padding: 5px;
     }
   }
+ }
+
+ footer {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  .rs-school_link {
+    width: 10rem;
+  }
+
+  .authors_wrapper {
+    display: flex;
+    align-items: center;
+    font-size: 2rem;
+
+    .created_by{
+      margin-right: 1rem;
+      color: #000000;
+      font-size: 3rem;
+    }
+
+    .authors_list {
+      list-style-type: none;
+
+      .author_link {
+        color: #000000;
+        text-decoration: none;
+      }
+    }
+
+  }
+ }
 }

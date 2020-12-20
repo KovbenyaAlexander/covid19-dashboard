@@ -66,7 +66,7 @@ export default class CovidDashboardView extends EventEmitter {
     this.table = elementFactory('div', { class: 'country-table' }, '');
     this.container = elementFactory('div', { class: 'country-table-container' }, periodSwitchHeader, this.togglePeriodButton, populationSwitchHeader, this.togglePopulationButton,
       this.tableButtonPrev, this.tableButtonNext, this.tableFilterInput, this.tableHeader, this.table);
-    getElement('body').prepend(this.container);
+    getElement('main').appendChild(this.container);
   }
 
   /**
@@ -162,7 +162,7 @@ export default class CovidDashboardView extends EventEmitter {
     const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
     chartTitle.textContent = 'Cases of Infection';
 
-    getElement('body').appendChild(chartContainer);
+    getElement('main').appendChild(chartContainer);
     chartContainer.appendChild(canvas);
     chartContainer.appendChild(chartTitleContainer);
     chartTitleContainer.appendChild(leftArrow);
@@ -193,12 +193,9 @@ export default class CovidDashboardView extends EventEmitter {
     rightArrow.addEventListener('click', () => {
       i += 1;
       const key = Object.keys(this.aroundTheWorldCases)[i % 3];
-      // eslint-disable-next-line no-use-before-define
       this.myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
       this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
       chartTitle.textContent = Object.keys(this.aroundTheWorldCases)[i % 3].split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
       this.myChart.update();
     });
 
@@ -208,20 +205,13 @@ export default class CovidDashboardView extends EventEmitter {
         i = 2;
       }
       const key = Object.keys(this.aroundTheWorldCases)[(i % 3)];
-      // eslint-disable-next-line no-use-before-define
       this.myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
       this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
       chartTitle.textContent = Object.keys(this.aroundTheWorldCases)[i % 3].split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
       this.myChart.update();
     });
 
-    // eslint-disable-next-line no-undef
-    // Chart.defaults.global.defaultColor = 'rgba(248, 246, 142, 0.5)';
-
     const ctx = document.querySelector('canvas').getContext('2d');
-    // eslint-disable-next-line no-undef
     this.myChart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -315,7 +305,7 @@ export default class CovidDashboardView extends EventEmitter {
 
     const table = elementFactory('table', { class: 'covid_info__table' }, tableHeader, tableContent);
     const container = elementFactory('div', { class: 'covid_info' }, table);
-    getElement('body').appendChild(container);
+    getElement('main').appendChild(container);
   }
 
   updateCovidInfoTable() {

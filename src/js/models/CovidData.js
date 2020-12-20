@@ -75,22 +75,6 @@ export default class CovidDate extends EventEmitter {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  // async getDataAboutCountryByName(name) {
-  //   try {
-  //     const url = `https://api.covid19api.com/total/dayone/country/${name}`;
-  //     const res = await fetch(url);
-  //     const data = await res.json();
-  //     return data;
-  //   } catch (err) {
-  //     alert('Data not found!');
-  //   }
-  // }
-
-  // log() {
-  //   console.log(this.data);
-  // }
-
   сountriesInfoSort(value) {
     this.data.CountriesInfo = _.orderBy(this.data.CountriesInfo, [value], ['desc']);
   }
