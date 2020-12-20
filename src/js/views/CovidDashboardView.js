@@ -299,6 +299,7 @@ export default class CovidDashboardView extends EventEmitter {
   }
 
   mapInit() {
+    const o = this;
     console.log('+');
     console.log(cData);
 
@@ -322,7 +323,7 @@ export default class CovidDashboardView extends EventEmitter {
       const circleSizeCoefficient = 7;
       const circle = L.circle(circleCenter, countryInfo[properties[0].name] / circleSizeCoefficient, circleOptions);
       this.currentMarkers.push(circle);
-      /*  circle.addTo(this.map);  */
+      circle.addTo(this.map);
     });
     this.layerGroup = L.layerGroup(this.currentMarkers);
     this.layerGroup.addTo(this.map);
@@ -338,7 +339,7 @@ export default class CovidDashboardView extends EventEmitter {
     this.layerGroup.addTo(this.map);
     this.geojson = L.geoJson(cData, {
       style,
-      onEachFeature: onEachFeature,
+      onEachFeature: onEachFeature.bind(this),
     }).addTo(this.map);
     function highlightFeature(e) {
       var layer = e.target;
@@ -372,10 +373,15 @@ export default class CovidDashboardView extends EventEmitter {
     info.addTo(this.map);
     function onEachFeature(feature, layer) {
       layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: zoomToFeature,
+        mouseover: highlightFeature.bind(this),
+        mouseout: resetHighlight.bind(this),
+        click: zoomToFeature.bind(this),
       });
+    }
+
+    function zoomToFeature(e) {
+      console.log(e.target);
+      this.map.fitBounds(e.target.getBounds());
     }
 
     function getColor(d) {
@@ -408,15 +414,10 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function resetHighlight(e) {
-      console.log(this.geojson);
       this.geojson.resetStyle(e.target);
       info.update();
     }
 
-    function zoomToFeature(e) {
-      console.log(e.target);
-      this.map.fitBounds(e.target.getBounds());
-    }
     this.map.addLayer(this.layer);
   }
 
@@ -472,21 +473,5 @@ export default class CovidDashboardView extends EventEmitter {
     });
 
     return code;
-  }
-
-  highlightFeature(e) {
-    const layer = e.target;
-    layer.setStyle({
-      weight: 2,
-      color: '#666',
-      dashArray: '',
-      fillOpacity: 0.7,
-    });
-
-    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-      layer.bringToFront();
-    }
-
-    info.update(layer.feature.properties);
   }
 }
