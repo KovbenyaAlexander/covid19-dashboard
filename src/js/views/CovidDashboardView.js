@@ -354,10 +354,16 @@ export default class CovidDashboardView extends EventEmitter {
     };
 
     this.info.update = function (props) {
-      this._div.innerHTML = '<h4>Information</h4>'
-        + (props
-          ? '<b>' + props.formal_en + '</b><br />' + props.iso_a2 + ' -CODE'
-          : 'Hover over ountry');
+      if (props) {
+        const currentValue = this_.model.data.CountriesInfo.find((item) => item.CountryCode === props.iso_a2);
+        if (currentValue) {
+          const currentProperties = this_.properties.find((item) => item.name === currentPropOfData);
+          this._div.innerHTML = `<h4>${props.formal_en}  [${props.iso_a2}]</h4>
+          <h4>${currentProperties.header}: ${currentValue[currentPropOfData]}</h4>`;
+        }
+      } else {
+        this._div.innerHTML = '';
+      }
     };
 
     this.info.addTo(this.map);
@@ -429,8 +435,6 @@ export default class CovidDashboardView extends EventEmitter {
     const this_ = this;
     this.currentDataForDisplay = this.model.data.CountriesInfo.map((item) => item[currentPropOfData]);
     const maxValue = Math.max(...this.currentDataForDisplay);
-    console.log(maxValue);
-
     this.stylesOfCountries.forEach((item) => this.geojson.removeLayer(item));
 
     this.geojson = L.geoJson(cData, {
@@ -514,10 +518,15 @@ export default class CovidDashboardView extends EventEmitter {
     /* ---create additional info container--- */
 
     this.info.update = function (props) {
-      if (!props) {
-        this._div.innerHTML = `<h4>Hover over ountry</h4>`;
+      if (props) {
+        const currentValue = this_.model.data.CountriesInfo.find((item) => item.CountryCode === props.iso_a2);
+        if (currentValue) {
+          const currentProperties = this_.properties.find((item) => item.name === currentPropOfData);
+          this._div.innerHTML = `<h4>${props.formal_en}  [${props.iso_a2}]</h4>
+          <h4>${currentProperties.header}: ${currentValue[currentPropOfData]}</h4>`;
+        }
       } else {
-        this._div.innerHTML = `<h4>${props.formal_en} [${props.iso_a2}]</h4>`;
+        this._div.innerHTML = '';
       }
     };
 
