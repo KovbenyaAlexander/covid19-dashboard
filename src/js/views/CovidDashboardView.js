@@ -140,20 +140,7 @@ export default class CovidDashboardView extends EventEmitter {
     const chartTitle = elementFactory('h3', { class: 'chart_title' }, '');
     const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
     const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
-    chartTitle.textContent = 'Total Cases';
-
-    const totalCases = [[], [], []];
-    const lastUpdate = [];
-    this.chartData.forEach((item) => {
-      totalCases[0].push(item.total_cases);
-      totalCases[1].push(item.total_deaths);
-      totalCases[2].push(item.total_recovered);
-      lastUpdate.push(`${item.last_update.split('-')[1]} ${item.last_update.split('-')[0]}`);
-    });
-    lastUpdate.reverse();
-    totalCases[0].reverse();
-    totalCases[1].reverse();
-    totalCases[2].reverse();
+    chartTitle.textContent = 'World Wide Cases of Infection';
 
     getElement('body').appendChild(chartContainer);
     chartContainer.appendChild(canvas);
@@ -162,22 +149,51 @@ export default class CovidDashboardView extends EventEmitter {
     chartTitleContainer.appendChild(chartTitle);
     chartTitleContainer.appendChild(rightArrow);
 
-    let yAxeIndex = 0;
+    // const aroundTheWorldCases = [[], [], []];
+    const aroundTheWorldCases = {
+      World_Wide_Cases_of_Infection: [],
+      World_Wide_Cases_of_Deaths: [],
+      World_Wide_Cases_of_Recovery: [],
+      Dates_of_Updating: [],
+    };
+    // const lastUpdate = [];
+    this.chartData.forEach((item) => {
+      aroundTheWorldCases.World_Wide_Cases_of_Infection.push(item.total_cases);
+      aroundTheWorldCases.World_Wide_Cases_of_Deaths.push(item.total_deaths);
+      aroundTheWorldCases.World_Wide_Cases_of_Recovery.push(item.total_recovered);
+      aroundTheWorldCases.Dates_of_Updating.push(`${item.last_update.split('-')[1]} ${item.last_update.split('-')[0]}`);
+    });
+
+    aroundTheWorldCases.World_Wide_Cases_of_Infection.reverse();
+    aroundTheWorldCases.World_Wide_Cases_of_Deaths.reverse();
+    aroundTheWorldCases.World_Wide_Cases_of_Recovery.reverse();
+    aroundTheWorldCases.Dates_of_Updating.reverse();
+
+    let i = 0;
 
     rightArrow.addEventListener('click', () => {
-      yAxeIndex += 1;
-      const i = yAxeIndex % 3;
+      i += 1;
+      const key = Object.keys(aroundTheWorldCases)[i % 3];
       // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].data = totalCases[i];
+      myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
+      // eslint-disable-next-line no-use-before-define
+      myChart.data.datasets[0].data = aroundTheWorldCases[key];
+      chartTitle.textContent = Object.keys(aroundTheWorldCases)[i % 3].split('_').join(' ');
       // eslint-disable-next-line no-use-before-define
       myChart.update();
     });
 
     leftArrow.addEventListener('click', () => {
-      yAxeIndex -= 1;
-      const i = Math.abs(yAxeIndex % 3);
-      // eslint-disable-next-line no-use-before-define, prefer-destructuring
-      myChart.data.datasets[0].data = totalCases[i];
+      i -= 1;
+      if (i < 0) {
+        i = 2;
+      }
+      const key = Object.keys(aroundTheWorldCases)[(i % 3)];
+      // eslint-disable-next-line no-use-before-define
+      myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
+      // eslint-disable-next-line no-use-before-define
+      myChart.data.datasets[0].data = aroundTheWorldCases[key];
+      chartTitle.textContent = Object.keys(aroundTheWorldCases)[i % 3].split('_').join(' ');
       // eslint-disable-next-line no-use-before-define
       myChart.update();
     });
@@ -190,10 +206,10 @@ export default class CovidDashboardView extends EventEmitter {
     const myChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: lastUpdate,
+        labels: aroundTheWorldCases.Dates_of_Updating,
         datasets: [{
-          label: 'Total Cases',
-          data: totalCases[0],
+          label: 'World Wide Cases of Infection',
+          data: aroundTheWorldCases.World_Wide_Cases_of_Infection,
           backgroundColor: 'rgba(247, 202, 80, 0.9)',
           borderColor: 'rgba(247, 202, 80, 1)',
           borderWidth: 1,
