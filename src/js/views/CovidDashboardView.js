@@ -1,9 +1,23 @@
+/* eslint-disable no-alert */
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable vars-on-top */
+/* eslint-disable no-var */
+/* eslint-disable prefer-template */
+/* eslint-disable func-names */
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-nested-ternary */
+/* eslint-disable quotes */
+/* eslint-disable object-shorthand */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-undef */
+/* eslint-disable new-cap */
 import Chart from 'chart.js';
 import EventEmitter from '../models/EventEmitter';
 import {
   elementFactory, clearElement, getElement, getElements,
 } from '../helpers/domElementsHelper';
-
+import cData from '../helpers/countries';
 import properties from '../helpers/properties';
 
 const _ = require('lodash');
@@ -104,8 +118,8 @@ export default class CovidDashboardView extends EventEmitter {
 
       row.onclick = () => {
         // eslint-disable-next-line no-alert
-        alert(country.Country);
-        this.selectedCountry = country.Country;
+        alert(`${country.Country} || ${country.CountryCode}`);
+        this.selectedCountry = country.CountryCode;
         this.updateCovidInfoTable();
       };
 
@@ -220,12 +234,14 @@ export default class CovidDashboardView extends EventEmitter {
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
       this.updateCovidInfoTable();
+      this.mapUpdate(this.properties[this.tableCurrentProp].name);
     });
     this.populationInput.addEventListener('change', () => {
       this.isPopulation = !this.isPopulation;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
       this.updateCovidInfoTable();
+      this.mapUpdate(this.properties[this.tableCurrentProp].name);
     });
 
     this.tableFilterInput.addEventListener('keyup', (e) => {
@@ -266,7 +282,7 @@ export default class CovidDashboardView extends EventEmitter {
   updateCovidInfoTable() {
     let data;
     if (this.selectedCountry) {
-      data = this.model.data.CountriesInfo.find((item) => item.Country === this.selectedCountry);
+      data = this.model.data.CountriesInfo.find((item) => item.CountryCode === this.selectedCountry);
     } else {
       data = this.model.data.GlobalInfo;
     }
@@ -280,5 +296,182 @@ export default class CovidDashboardView extends EventEmitter {
     countOfDesease.innerText = data[this.properties[0].name];
     countOfDeath.innerText = data[this.properties[1].name];
     countOfRecovered.innerText = data[this.properties[2].name];
+  }
+
+  mapInit() {
+    const o = this;
+    console.log('+');
+    console.log(cData);
+
+    const mapOptions = {
+      center: [53, 28],
+      zoom: 2,
+      worldCopyJump: true,
+      minZoom: 2,
+      maxZoom: 5,
+    };
+    this.currentMarkers = [];
+    this.map = new L.map('map', mapOptions);
+    this.layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    this.model.data.CountriesInfo.forEach((countryInfo) => {
+      const circleCenter = [countryInfo.lat, countryInfo.lng];
+      const circleOptions = {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5,
+      };
+      const circleSizeCoefficient = 7;
+      const circle = L.circle(circleCenter, countryInfo[properties[0].name] / circleSizeCoefficient, circleOptions);
+      this.currentMarkers.push(circle);
+      circle.addTo(this.map);
+    });
+    this.layerGroup = L.layerGroup(this.currentMarkers);
+    this.layerGroup.addTo(this.map);
+    this.map.addEventListener('click', (event) => {
+      const countryCodeResponse = this.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
+      countryCodeResponse.then((code) => {
+        if (code) {
+          this.selectedCountry = code;
+          this.updateCovidInfoTable();
+        }
+      });
+    });
+    this.layerGroup.addTo(this.map);
+    this.geojson = L.geoJson(cData, {
+      style,
+      onEachFeature: onEachFeature.bind(this),
+    }).addTo(this.map);
+    function highlightFeature(e) {
+      var layer = e.target;
+      layer.setStyle({
+        weight: 2,
+        color: "#666",
+        dashArray: "",
+        fillOpacity: 0.7,
+      });
+
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+
+      info.update(layer.feature.properties);
+    }
+    var info = L.control();
+    info.onAdd = function (map) {
+      this._div = L.DomUtil.create("div", "info");
+      this.update();
+      return this._div;
+    };
+
+    info.update = function (props) {
+      this._div.innerHTML = '<h4>Information</h4>'
+        + (props
+          ? '<b>' + props.formal_en + '</b><br />' + props.iso_a2 + ' -CODE'
+          : 'Hover over ountry');
+    };
+
+    info.addTo(this.map);
+    function onEachFeature(feature, layer) {
+      layer.on({
+        mouseover: highlightFeature.bind(this),
+        mouseout: resetHighlight.bind(this),
+        click: zoomToFeature.bind(this),
+      });
+    }
+
+    function zoomToFeature(e) {
+      console.log(e.target);
+      this.map.fitBounds(e.target.getBounds());
+    }
+
+    function getColor(d) {
+      return d > 1000
+        ? "#800026"
+        : d > 500
+          ? "#BD0026"
+          : d > 200
+            ? "#E31A1C"
+            : d > 100
+              ? "#FC4E2A"
+              : d > 50
+                ? "#FD8D3C"
+                : d > 20
+                  ? "#FEB24C"
+                  : d > 10
+                    ? '#FED976'
+                    : '#FFEDA0';
+    }
+
+    function style(feature) {
+      return {
+        weight: 2,
+        opacity: 1,
+        color: "white",
+        dashArray: "3",
+        fillOpacity: 0.7,
+        fillColor: getColor(feature.properties.density),
+      };
+    }
+
+    function resetHighlight(e) {
+      this.geojson.resetStyle(e.target);
+      info.update();
+    }
+
+    this.map.addLayer(this.layer);
+  }
+
+  mapUpdate(currentPropOfData) {
+    this.currentMarkers.forEach((item) => this.layerGroup.removeLayer(item));
+    this.currentMarkers = [];
+    this.model.data.CountriesInfo.forEach((countryInfo) => {
+      const circleCenter = [countryInfo.lat, countryInfo.lng];
+      const circleOptions = {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5,
+      };
+      let circleSizeCoefficient = 0.1;
+      console.log(currentPropOfData);
+      if (currentPropOfData === 'TotalConfirmed') {
+        circleSizeCoefficient = 7;
+      } else if (currentPropOfData === 'totalConfirmedPer100k') {
+        circleSizeCoefficient = 0.03;
+      } else if (currentPropOfData === 'newConfirmedPer100k') {
+        circleSizeCoefficient = 0.0005;
+      }
+      const circle = L.circle(circleCenter, countryInfo[currentPropOfData] / circleSizeCoefficient, circleOptions);
+      this.currentMarkers.push(circle);
+    });
+    this.layerGroup = L.layerGroup(this.currentMarkers);
+  }
+
+  async getCountryCodeBameByCoords(lt, lg) {
+    async function reverseGeocoding(lat, log) {
+      try {
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${log}&key=99ecf60eb3944fd69770b5c974614a6a&language=en`;
+        const res = await fetch(url);
+        const data = await res.json();
+        return data;
+      } catch (err) {
+        // eslint-disable-next-line no-alert
+        alert('Something went wrong');
+      }
+      return data;
+    }
+
+    const response = reverseGeocoding(lt, lg);
+    let code;
+    await response.then((data) => {
+      if (data.results[0].components.country_code) {
+        code = data.results[0].components.country_code.toUpperCase();
+        alert(`${data.results[0].components.country} --> ${data.results[0].components.country_code}`);
+      } else {
+        code = null;
+        alert('Results not found');
+      }
+    });
+
+    return code;
   }
 }

@@ -24,6 +24,10 @@ export default class MainAppController {
     this.dashboardView.updateCovidInfoTable();
   }
 
+  mapInit() {
+    this.dashboardView.mapInit();
+  }
+
   setUplocalListeners() {
     this.model.on('hasdata', () => {
       this.dashboardView.model = this.model;
@@ -32,6 +36,7 @@ export default class MainAppController {
       this.displayChart();
       this.displayCovidInfoTable();
       this.updateCovidInfoTable();
+      this.mapInit();
     });
   }
 }
