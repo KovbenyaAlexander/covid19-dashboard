@@ -379,15 +379,27 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function getColor(d) {
-      return d > 10000000
-        ? "#9C0000"
-        : d > 1000000
-          ? "#FF3939"
-          : d > 100000
-            ? "#EC86A4"
-            : d > 1000
-              ? "#F5D1D1"
-              : '#F1E8E8';
+      const maxValue = 17000000;
+      /* return d > 10000000
+         ? "#9C0000"
+         : d > 1000000
+           ? "#FF3939"
+           : d > 100000
+             ? "#EC86A4"
+             : d > 1000
+               ? "#F5D1D1"
+               : '#F1E8E8'; */
+      if (d > maxValue * 0.5) {
+        return '#330000';
+      } else if (d > maxValue * 0.2) {
+        return '#990000';
+      } else if (d > maxValue * 0.1) {
+        return '#ff1a1a';
+      } else if (d > maxValue * 0.001) {
+        return '#ff6666';
+      } else {
+        return '#ffb3b3';
+      }
     }
 
     function style(feature) {
@@ -479,16 +491,15 @@ export default class CovidDashboardView extends EventEmitter {
 
     function getColor(d) {
       if (d > maxValue * 0.5) {
-        // return '#660000';
-        return 'black';
-      } else if (d > maxValue * 0.4) {
-        return '#b30000';
+        return '#330000';
+      } else if (d > maxValue * 0.2) {
+        return '#990000';
       } else if (d > maxValue * 0.1) {
-        return '#EC86A4';
-      } else if (d > maxValue * 0.05) {
+        return '#ff1a1a';
+      } else if (d > maxValue * 0.001) {
         return '#ff6666';
       } else {
-        return '#ffe6e6';
+        return '#ffb3b3';
       }
     }
 
