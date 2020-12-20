@@ -1,3 +1,14 @@
+/* eslint-disable no-alert */
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable vars-on-top */
+/* eslint-disable no-var */
+/* eslint-disable prefer-template */
+/* eslint-disable func-names */
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-nested-ternary */
+/* eslint-disable quotes */
+/* eslint-disable object-shorthand */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-undef */
 /* eslint-disable new-cap */
@@ -6,7 +17,7 @@ import EventEmitter from '../models/EventEmitter';
 import {
   elementFactory, clearElement, getElement, getElements,
 } from '../helpers/domElementsHelper';
-
+import cData from '../helpers/countries';
 import properties from '../helpers/properties';
 
 const _ = require('lodash');
@@ -288,15 +299,19 @@ export default class CovidDashboardView extends EventEmitter {
   }
 
   mapInit() {
+    console.log('+');
+    console.log(cData);
+
     const mapOptions = {
       center: [53, 28],
-      zoom: 1,
+      zoom: 2,
       worldCopyJump: true,
+      minZoom: 2,
+      maxZoom: 5,
     };
     this.currentMarkers = [];
     this.map = new L.map('map', mapOptions);
     this.layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    this.map.addLayer(this.layer);
     this.model.data.CountriesInfo.forEach((countryInfo) => {
       const circleCenter = [countryInfo.lat, countryInfo.lng];
       const circleOptions = {
@@ -320,6 +335,89 @@ export default class CovidDashboardView extends EventEmitter {
         }
       });
     });
+    this.layerGroup.addTo(this.map);
+    this.geojson = L.geoJson(cData, {
+      style,
+      onEachFeature: onEachFeature,
+    }).addTo(this.map);
+    function highlightFeature(e) {
+      var layer = e.target;
+      layer.setStyle({
+        weight: 2,
+        color: "#666",
+        dashArray: "",
+        fillOpacity: 0.7,
+      });
+
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+
+      info.update(layer.feature.properties);
+    }
+    var info = L.control();
+    info.onAdd = function (map) {
+      this._div = L.DomUtil.create("div", "info");
+      this.update();
+      return this._div;
+    };
+
+    info.update = function (props) {
+      this._div.innerHTML = '<h4>Information</h4>'
+        + (props
+          ? '<b>' + props.formal_en + '</b><br />' + props.iso_a2 + ' -CODE'
+          : 'Hover over ountry');
+    };
+
+    info.addTo(this.map);
+    function onEachFeature(feature, layer) {
+      layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature,
+      });
+    }
+
+    function getColor(d) {
+      return d > 1000
+        ? "#800026"
+        : d > 500
+          ? "#BD0026"
+          : d > 200
+            ? "#E31A1C"
+            : d > 100
+              ? "#FC4E2A"
+              : d > 50
+                ? "#FD8D3C"
+                : d > 20
+                  ? "#FEB24C"
+                  : d > 10
+                    ? '#FED976'
+                    : '#FFEDA0';
+    }
+
+    function style(feature) {
+      return {
+        weight: 2,
+        opacity: 1,
+        color: "white",
+        dashArray: "3",
+        fillOpacity: 0.7,
+        fillColor: getColor(feature.properties.density),
+      };
+    }
+
+    function resetHighlight(e) {
+      console.log(this.geojson);
+      this.geojson.resetStyle(e.target);
+      info.update();
+    }
+
+    function zoomToFeature(e) {
+      console.log(e.target);
+      this.map.fitBounds(e.target.getBounds());
+    }
+    this.map.addLayer(this.layer);
   }
 
   mapUpdate(currentPropOfData) {
@@ -345,7 +443,6 @@ export default class CovidDashboardView extends EventEmitter {
       this.currentMarkers.push(circle);
     });
     this.layerGroup = L.layerGroup(this.currentMarkers);
-    this.layerGroup.addTo(this.map);
   }
 
   async getCountryCodeBameByCoords(lt, lg) {
@@ -375,5 +472,21 @@ export default class CovidDashboardView extends EventEmitter {
     });
 
     return code;
+  }
+
+  highlightFeature(e) {
+    const layer = e.target;
+    layer.setStyle({
+      weight: 2,
+      color: '#666',
+      dashArray: '',
+      fillOpacity: 0.7,
+    });
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+      layer.bringToFront();
+    }
+
+    info.update(layer.feature.properties);
   }
 }
