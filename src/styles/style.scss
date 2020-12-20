@@ -1,6 +1,140 @@
-.chart_container {
-  position: relative;
-  width: 30rem;
-  margin: 0 auto;
+:root {
+  font-size: 10px;
+}
+
+*,
+*::before,
+*::after {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+
+  .chart_container {
+    position: relative;
+    width: 40rem;
+    margin: 0 auto;
+    text-align: center;
+
+    .chart_title_container {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-evenly;
+      font-size: 2rem;
+      align-items: center;
+      color: rgb(54, 54, 54);
+
+      .fas {
+        &:hover {
+          color: #000000;
+          transform: scale(1.5);
+        }
+      }
+    }
+  }
+
+@mixin flex-div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin row-gap($gap: 0px) {
+  row-gap: $gap;
+}
+
+
+.country-table-container {
+  @include flex-div;
+  flex-direction: column;
+}
+
+.country-table {
+  flex-direction: column;
+  height: 600px;
+  width: 365px;
+  padding-right: 2px;
+  overflow-y: auto;
+  font-size: 18px;
+  color: rgb(235, 235, 235);
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 2px solid black;
+  background: gray;
+
+  &:not(:first-child) {
+    border-top: none;
+  }
+
+  &:hover {
+    cursor: pointer;
+    background: rgb(204, 204, 204);
+  }
+
+  &:active {
+    transform: translateX(-2px);
+  }
+}
+
+.row-hide {
+  display: none;
+}
+
+.flag-img {
+  width: 50px;
+  height: 25px;
+  object-fit: cover;
+  justify-self: start;
+}
+
+.table-cell {
+  @include flex-div;
+  padding: 5px;
+  height: 100%;
+  &:not(:first-child) {
+    border-top: none;
+  }
+}
+.cell-numeric {
+  display: none;
+  width: 90px;
+}
+.cell-active{
+  display: flex;
+}
+.cell-hide {
+  display: flex;
+}
+.cell-name {
+  width: 200px;
   text-align: center;
+  border-right: 2px solid black;
+}
+
+
+/*---covid-table---*/
+.covid_info{
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  margin: 50px;
+}
+
+
+.covid_info__table{
+  border-collapse: collapse;
+}
+
+.covid_info__table > tr > th, td{
+  border: 1px solid black;
+  padding: 5px;
+}
 }
