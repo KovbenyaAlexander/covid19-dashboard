@@ -315,10 +315,12 @@ export default class CovidDashboardView extends EventEmitter {
     this.tableButtonNext.addEventListener('click', () => {
       this.nextProp();
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+      this.mapUpdate(this.properties[this.tableCurrentProp].name);
     });
     this.tableButtonPrev.addEventListener('click', () => {
       this.prevProp();
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+      this.mapUpdate(this.properties[this.tableCurrentProp].name);
     });
 
     this.chartButtonNext.addEventListener('click', () => {
@@ -473,7 +475,7 @@ export default class CovidDashboardView extends EventEmitter {
       onEachFeature: onEachFeature.bind(this),
     }).addTo(this.map);
     function highlightFeature(e) {
-      var layer = e.target;
+      const layer = e.target;
       layer.setStyle({
         weight: 2,
         color: "#666",
@@ -588,7 +590,7 @@ export default class CovidDashboardView extends EventEmitter {
       const grades = [0, 1000, 100000, 1000000, 10000000];
       const labels = [];
       // loop through our density intervals and generate a label with a colored square for each interval
-      for (var i = 0; i < grades.length; i += 1) {
+      for (let i = 0; i < grades.length; i += 1) {
         this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
       }
       return this.div;
@@ -657,7 +659,7 @@ export default class CovidDashboardView extends EventEmitter {
       this.map.fitBounds(e.target.getBounds());
     }
     function highlightFeature(e) {
-      var layer = e.target;
+      const layer = e.target;
       layer.setStyle({
         weight: 2,
         color: "#666",
@@ -687,7 +689,6 @@ export default class CovidDashboardView extends EventEmitter {
         }
       } else {
         this._div.innerHTML = '';
-
       }
     };
 
@@ -709,7 +710,7 @@ export default class CovidDashboardView extends EventEmitter {
       const labels = [];
       this.div.innerHTML = '';
       // loop through our density intervals and generate a label with a colored square for each interval
-      for (var i = 0; i < grades.length; i += 1) {
+      for (let i = 0; i < grades.length; i += 1) {
         this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
       }
       return this.div;
