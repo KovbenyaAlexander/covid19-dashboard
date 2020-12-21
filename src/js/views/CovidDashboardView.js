@@ -390,7 +390,7 @@ export default class CovidDashboardView extends EventEmitter {
                ? "#F5D1D1"
                : '#F1E8E8'; */
       if (d > maxValue * 0.5) {
-        return '#330000';
+        return '#800000';
       } else if (d > maxValue * 0.2) {
         return '#990000';
       } else if (d > maxValue * 0.1) {
@@ -443,14 +443,14 @@ export default class CovidDashboardView extends EventEmitter {
     /* ---legend--- */
     this.legend = L.control({ position: 'bottomright' });
     this.legend.onAdd = function (map) {
-      const div = L.DomUtil.create('div', 'info legend');
+      this.div = L.DomUtil.create('div', 'info legend');
       const grades = [0, 1000, 100000, 1000000, 10000000];
       const labels = [];
       // loop through our density intervals and generate a label with a colored square for each interval
       for (var i = 0; i < grades.length; i += 1) {
-        div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+        this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
       }
-      return div;
+      return this.div;
     };
     this.legend.addTo(this.map);
   }
@@ -491,7 +491,7 @@ export default class CovidDashboardView extends EventEmitter {
 
     function getColor(d) {
       if (d > maxValue * 0.5) {
-        return '#330000';
+        return '#800000';
       } else if (d > maxValue * 0.2) {
         return '#990000';
       } else if (d > maxValue * 0.1) {
@@ -559,15 +559,17 @@ export default class CovidDashboardView extends EventEmitter {
     });
     /* ---legend--- */
     // this.map.removeLayer(this.legend);
+
     this.legend.onAdd = function (map) {
-      const div = L.DomUtil.create('div', 'info legend');
-      const grades = [0, 1000, 100000, 1000000, 10000000];
+      // const div = L.DomUtil.create('div', 'info legend');
+      const grades = [0, (maxValue * 0.001).toFixed(3), (maxValue * 0.1).toFixed(3), (maxValue * 0.2).toFixed(3), (maxValue * 0.5).toFixed(3)];
       const labels = [];
+      this.div.innerHTML = '';
       // loop through our density intervals and generate a label with a colored square for each interval
       for (var i = 0; i < grades.length; i += 1) {
-        div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+        this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
       }
-      return div;
+      return this.div;
     };
 
     this.legend.addTo(this.map);
