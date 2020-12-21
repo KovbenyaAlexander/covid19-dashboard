@@ -24,6 +24,10 @@ export default class MainAppController {
     this.dashboardView.updateCovidInfoTable();
   }
 
+  updateChartData(name) {
+    this.model.getDataByCountryName(name);
+  }
+
   mapInit() {
     this.dashboardView.mapInit();
   }
@@ -33,10 +37,14 @@ export default class MainAppController {
       this.dashboardView.model = this.model;
       this.dashboardView.chartData = this.model.data.timeline;
       this.displayTable();
-      this.displayChart();
-      this.displayCovidInfoTable();
       this.updateCovidInfoTable();
+      this.displayChart();
       this.mapInit();
     });
+    this.model.on('hascountrydata', () => {
+      this.dashboardView.chartData = this.model.chartData;
+      // console.log(this.dashboardView.chartData);
+    });
+    this.dashboardView.on('updatedata', (name) => this.updateChartData(name));
   }
 }

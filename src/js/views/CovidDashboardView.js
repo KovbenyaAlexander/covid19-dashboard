@@ -29,42 +29,96 @@ export default class CovidDashboardView extends EventEmitter {
     this.model = [];
     this.chartData = [];
     this.evnts = {};
-    this.createTableContainer();
-    this.setUpLocalListeners();
 
     this.properties = properties;
+    this.displayCovidInfoTable();
+    this.createTableContainer();
+    this.createMapContainer();
+    this.createChartContainer();
+    this.setUpLocalListeners();
 
     this.isLastDay = false;
     this.isPopulation = false;
     this.selectedCountry = null;
 
     this.tableCurrentProp = 0;
+
+    this.aroundTheWorldCases = {};
+    this.myChart = {};
   }
 
   /**
    * Creates application default page layer without any data.
    */
   createTableContainer() {
-    this.tableButtonPrev = elementFactory('button', {}, 'Prev');
-    this.tableButtonNext = elementFactory('button', {}, 'Next');
-    this.tableFilterInput = elementFactory('input', {}, '');
+    const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
+    const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
+    this.tableButtonPrev = elementFactory('button', { class: 'arrow-button' }, leftArrow);
+    this.tableButtonNext = elementFactory('button', { class: 'arrow-button' }, rightArrow);
 
-    this.tableHeader = elementFactory('div', { style: 'font-size:26px;' }, properties[0].header);
+    const searchLabel = elementFactory('label', { class: 'search-label', for: 'searchInput' }, 'Search country: ');
+    this.tableFilterInput = elementFactory('input', { class: 'country-search', id: 'searchInput' }, 'search country');
 
-    const periodSwitchHeader = elementFactory('span', {}, 'Period:');
+    const searchGroup = elementFactory('div', { class: 'search-group' }, searchLabel, this.tableFilterInput);
+
+    this.tableHeader = elementFactory('div', { class: 'table-header' }, properties[0].header);
+
+    const tableControl = elementFactory('div', { class: 'table-control' }, this.tableButtonPrev, this.tableHeader, this.tableButtonNext);
+
     this.periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
-    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last' }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
     this.togglePeriodButton = elementFactory('label', { class: 'switch' }, this.periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period: ', this.togglePeriodButton);
 
-    const populationSwitchHeader = elementFactory('span', {}, 'Population:');
     this.populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
     const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
     this.togglePopulationButton = elementFactory('label', { class: 'switch' }, this.populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population: ', this.togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
 
     this.table = elementFactory('div', { class: 'country-table' }, '');
-    this.container = elementFactory('div', { class: 'country-table-container' }, periodSwitchHeader, this.togglePeriodButton, populationSwitchHeader, this.togglePopulationButton,
-      this.tableButtonPrev, this.tableButtonNext, this.tableFilterInput, this.tableHeader, this.table);
-    getElement('body').appendChild(this.container);
+
+    const header = elementFactory('div', { class: 'country-container-header' }, 'Cases by Counry/Region/Province');
+
+    this.container = elementFactory('div', { class: 'country-table-container' }, header, controlGroup, searchGroup, tableControl, this.table);
+
+    this.tableMapContainer = elementFactory('div', { class: 'table-map-wrapper' }, this.container);
+    getElement('main').appendChild(this.tableMapContainer);
+  }
+
+  createMapContainer() {
+    const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
+    const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
+    this.mapButtonPrev = elementFactory('button', { class: 'arrow-button' }, leftArrow);
+    this.mapButtonNext = elementFactory('button', { class: 'arrow-button' }, rightArrow);
+
+    this.mapHeader = elementFactory('div', { class: 'map-header' }, properties[0].header);
+
+    const mapControl = elementFactory('div', { class: 'map-control' }, this.mapButtonPrev, this.mapHeader, this.mapButtonNext);
+
+    const periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
+    const togglePeriodButton = elementFactory('label', { class: 'switch' }, periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period:', togglePeriodButton);
+
+    const populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
+    const togglePopulationButton = elementFactory('label', { class: 'switch' }, populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population:', togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
+
+    this.map = elementFactory('div', { class: 'map-block', id: 'map' }, '');
+    const mapContainerHeader = elementFactory('div', { class: 'map-container-header' }, 'World map');
+    const mapContainer = elementFactory('div', { class: 'map-container' }, mapContainerHeader, controlGroup, mapControl, this.map);
+
+    this.tableMapContainer.appendChild(mapContainer);
+  }
+
+  resizeWindowElements() {
+    this.chartContainer.classList.toggle('hide-container');
+    this.tableMapContainer.classList.toggle('hide-container');
   }
 
   /**
@@ -119,9 +173,26 @@ export default class CovidDashboardView extends EventEmitter {
 
       row.onclick = () => {
         // eslint-disable-next-line no-alert
-        alert(`${country.Country} || ${country.CountryCode}`);
+        // alert(`${country.Country} || ${country.CountryCode}`);
         this.selectedCountry = country.CountryCode;
         this.updateCovidInfoTable();
+        this.emit('updatedata', country.Country);
+        setTimeout(() => {
+          this.aroundTheWorldCases.Cases_of_Infection = [];
+          this.aroundTheWorldCases.Cases_of_Deaths = [];
+          this.aroundTheWorldCases.Cases_of_Recovery = [];
+          this.aroundTheWorldCases.Dates_of_Updating = [];
+          this.chartData.forEach((item) => {
+            this.aroundTheWorldCases.Cases_of_Infection.push(item.Confirmed);
+            this.aroundTheWorldCases.Cases_of_Deaths.push(item.Deaths);
+            this.aroundTheWorldCases.Cases_of_Recovery.push(item.Recovered);
+            this.aroundTheWorldCases.Dates_of_Updating.push(`${item.Date.split('-')[1]} ${item.Date.split('-')[0]}`);
+          });
+          this.myChart.data.datasets[0].data = this.aroundTheWorldCases.Cases_of_Infection;
+          this.myChart.data.labels = this.aroundTheWorldCases.Dates_of_Updating;
+          this.myChart.options.title.text = `${this.chartData[0].Country}`;
+          this.myChart.update();
+        }, 1000);
       };
 
       rows.push(row);
@@ -133,84 +204,63 @@ export default class CovidDashboardView extends EventEmitter {
     this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  displayChart() {
-    const chartContainer = elementFactory('div', { class: 'chart_container' }, '');
+  createChartContainer() {
     const canvas = elementFactory('canvas', { id: 'chart', style: 'width: 2; height: 1' }, '');
-    const chartTitleContainer = elementFactory('div', { class: 'chart_title_container' }, '');
-    const chartTitle = elementFactory('h3', { class: 'chart_title' }, '');
+    this.chartTitle = elementFactory('div', { class: 'chart_title' }, this.properties[0].header);
     const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
     const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
-    chartTitle.textContent = 'World Wide Cases of Infection';
 
-    getElement('body').appendChild(chartContainer);
-    chartContainer.appendChild(canvas);
-    chartContainer.appendChild(chartTitleContainer);
-    chartTitleContainer.appendChild(leftArrow);
-    chartTitleContainer.appendChild(chartTitle);
-    chartTitleContainer.appendChild(rightArrow);
+    this.chartButtonPrev = elementFactory('button', { class: 'arrow-button' }, leftArrow);
+    this.chartButtonNext = elementFactory('button', { class: 'arrow-button' }, rightArrow);
 
-    // const aroundTheWorldCases = [[], [], []];
-    const aroundTheWorldCases = {
-      World_Wide_Cases_of_Infection: [],
-      World_Wide_Cases_of_Deaths: [],
-      World_Wide_Cases_of_Recovery: [],
+    const periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
+    const togglePeriodButton = elementFactory('label', { class: 'switch' }, periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period:', togglePeriodButton);
+
+    const populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
+    const togglePopulationButton = elementFactory('label', { class: 'switch' }, populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population:', togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
+
+    const chartTitleContainer = elementFactory('div', { class: 'chart_title_container' }, this.chartButtonPrev, this.chartTitle, this.chartButtonNext);
+
+    this.chartContainer = elementFactory('div', { class: 'chart_container' }, canvas, chartTitleContainer);
+
+    getElement('main').appendChild(this.chartContainer);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  displayChart() {
+    this.aroundTheWorldCases = {
+      Cases_of_Infection: [],
+      Cases_of_Deaths: [],
+      Cases_of_Recovery: [],
       Dates_of_Updating: [],
     };
-    // const lastUpdate = [];
+
     this.chartData.forEach((item) => {
-      aroundTheWorldCases.World_Wide_Cases_of_Infection.push(item.total_cases);
-      aroundTheWorldCases.World_Wide_Cases_of_Deaths.push(item.total_deaths);
-      aroundTheWorldCases.World_Wide_Cases_of_Recovery.push(item.total_recovered);
-      aroundTheWorldCases.Dates_of_Updating.push(`${item.last_update.split('-')[1]} ${item.last_update.split('-')[0]}`);
+      this.aroundTheWorldCases.Cases_of_Infection.push(item.total_cases);
+      this.aroundTheWorldCases.Cases_of_Deaths.push(item.total_deaths);
+      this.aroundTheWorldCases.Cases_of_Recovery.push(item.total_recovered);
+      this.aroundTheWorldCases.Dates_of_Updating.push(`${item.last_update.split('-')[1]} ${item.last_update.split('-')[0]}`);
     });
 
-    aroundTheWorldCases.World_Wide_Cases_of_Infection.reverse();
-    aroundTheWorldCases.World_Wide_Cases_of_Deaths.reverse();
-    aroundTheWorldCases.World_Wide_Cases_of_Recovery.reverse();
-    aroundTheWorldCases.Dates_of_Updating.reverse();
-
-    let i = 0;
-
-    rightArrow.addEventListener('click', () => {
-      i += 1;
-      const key = Object.keys(aroundTheWorldCases)[i % 3];
-      // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].data = aroundTheWorldCases[key];
-      chartTitle.textContent = Object.keys(aroundTheWorldCases)[i % 3].split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
-      myChart.update();
-    });
-
-    leftArrow.addEventListener('click', () => {
-      i -= 1;
-      if (i < 0) {
-        i = 2;
-      }
-      const key = Object.keys(aroundTheWorldCases)[(i % 3)];
-      // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
-      myChart.data.datasets[0].data = aroundTheWorldCases[key];
-      chartTitle.textContent = Object.keys(aroundTheWorldCases)[i % 3].split('_').join(' ');
-      // eslint-disable-next-line no-use-before-define
-      myChart.update();
-    });
-
-    // eslint-disable-next-line no-undef
-    // Chart.defaults.global.defaultColor = 'rgba(248, 246, 142, 0.5)';
+    this.aroundTheWorldCases.Cases_of_Infection.reverse();
+    this.aroundTheWorldCases.Cases_of_Deaths.reverse();
+    this.aroundTheWorldCases.Cases_of_Recovery.reverse();
+    this.aroundTheWorldCases.Dates_of_Updating.reverse();
 
     const ctx = document.querySelector('canvas').getContext('2d');
-    // eslint-disable-next-line no-undef
-    const myChart = new Chart(ctx, {
+    this.myChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: aroundTheWorldCases.Dates_of_Updating,
+        labels: this.aroundTheWorldCases.Dates_of_Updating,
         datasets: [{
-          label: 'World Wide Cases of Infection',
-          data: aroundTheWorldCases.World_Wide_Cases_of_Infection,
+          label: this.properties[0].header,
+          data: this.aroundTheWorldCases.Cases_of_Infection,
           backgroundColor: 'rgba(247, 202, 80, 0.9)',
           borderColor: 'rgba(247, 202, 80, 1)',
           borderWidth: 1,
@@ -220,6 +270,10 @@ export default class CovidDashboardView extends EventEmitter {
         }],
       },
       options: {
+        title: {
+          display: true,
+          text: 'Global info',
+        },
         scales: {
           yAxes: [{
             ticks: {
@@ -237,15 +291,54 @@ export default class CovidDashboardView extends EventEmitter {
     });
   }
 
+  nextProp() {
+    if (this.tableCurrentProp < this.properties.length - 1) {
+      this.tableCurrentProp += 1;
+    } else {
+      this.tableCurrentProp = 0;
+    }
+  }
+
+  prevProp() {
+    if (this.tableCurrentProp > 0) {
+      this.tableCurrentProp -= 1;
+    } else {
+      this.tableCurrentProp = this.properties.length - 1;
+    }
+  }
+
   setUpLocalListeners() {
+    this.covidInfoTableResize.addEventListener('click', () => {
+      this.resizeWindowElements();
+    });
+
     this.tableButtonNext.addEventListener('click', () => {
-      if (this.tableCurrentProp < this.properties.length - 1) {
-        this.tableCurrentProp += 1;
-      } else {
-        this.tableCurrentProp = 0;
-      }
+      this.nextProp();
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
     });
+    this.tableButtonPrev.addEventListener('click', () => {
+      this.prevProp();
+      this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+    });
+
+    this.chartButtonNext.addEventListener('click', () => {
+      this.nextProp();
+      const key = Object.keys(this.aroundTheWorldCases)[this.tableCurrentProp];
+      this.myChart.data.datasets[0].label = this.properties[this.tableCurrentProp].header;
+      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
+      this.chartTitle.textContent = this.properties[this.tableCurrentProp].header;
+      this.myChart.update();
+    });
+
+    this.chartButtonPrev.addEventListener('click', () => {
+      this.prevProp();
+      const key = Object.keys(this.aroundTheWorldCases)[this.tableCurrentProp];
+      this.myChart.data.datasets[0].label = this.properties[this.tableCurrentProp].header;
+      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
+      this.chartTitle.textContent = this.properties[this.tableCurrentProp].header;
+      this.myChart.update();
+    });
+
     this.periodInput.addEventListener('change', () => {
       this.isLastDay = !this.isLastDay;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
@@ -264,12 +357,11 @@ export default class CovidDashboardView extends EventEmitter {
     this.tableFilterInput.addEventListener('keyup', (e) => {
       const nameSpans = getElements('.cell-name');
       const searchString = e.target.value.toLowerCase();
-      nameSpans.forEach((span) => {
+      nameSpans.forEach((el) => {
+        const span = el;
         if (span.textContent.toLowerCase().indexOf(searchString) !== -1) {
-          // eslint-disable-next-line no-param-reassign
           span.closest('.table-row').classList.remove('row-hide');
         } else {
-          // eslint-disable-next-line no-param-reassign
           span.closest('.table-row').classList.add('row-hide');
         }
       });
@@ -278,22 +370,51 @@ export default class CovidDashboardView extends EventEmitter {
 
   // eslint-disable-next-line class-methods-use-this
   displayCovidInfoTable() {
-    const tableHeaderCountOfRecovered = elementFactory('th', {});
-    tableHeaderCountOfRecovered.innerText = 'Count of recovered';
-    const tableHeaderCountOfDeath = elementFactory('th', {});
-    tableHeaderCountOfDeath.innerText = 'Count of death';
-    const tableHeaderCountOfDesease = elementFactory('th', {});
-    tableHeaderCountOfDesease.innerText = 'Count of desease';
-    const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
+    this.infoTableCasesHeader = elementFactory('div', { class: 'card_header' }, this.properties[0].header);
+    this.infoTableCasesContent = elementFactory('div', { class: 'card_content' }, 'No data');
+    const casesCard = elementFactory('div', { class: 'covid-info-card' }, this.infoTableCasesHeader, this.infoTableCasesContent);
 
-    const tableContentCountOfRecovered = elementFactory('td', { class: 'covid_info__CountOfRecovered' });
-    const tableContentCountOfDeath = elementFactory('td', { class: 'covid_info__CountOfDeath' });
-    const tableContentCountOfDesease = elementFactory('td', { class: 'covid_info__CountOfDesease' });
-    const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
+    this.infoTableDeathHeader = elementFactory('div', { class: 'card_header--death' }, this.properties[1].header);
+    this.infoTableDeathContent = elementFactory('div', { class: 'card_content' }, 'No data');
+    const deathCard = elementFactory('div', { class: 'covid-info-card' }, this.infoTableDeathHeader, this.infoTableDeathContent);
 
-    const table = elementFactory('table', { class: 'covid_info__table' }, tableHeader, tableContent);
-    const container = elementFactory('div', { class: 'covid_info' }, table);
-    getElement('body').appendChild(container);
+    this.infoTableRecoveredHeader = elementFactory('div', { class: 'card_header--recovered' }, this.properties[2].header);
+    this.infoTableRecoveredContent = elementFactory('div', { class: 'card_content' }, 'No data');
+    const recoveredCard = elementFactory('div', { class: 'covid-info-card' }, this.infoTableRecoveredHeader, this.infoTableRecoveredContent);
+
+    this.infoTableHeader = elementFactory('div', { class: 'covid_info__header' }, 'Global Cases');
+    const infoCardContainer = elementFactory('div', { class: 'info-card-container' }, casesCard, deathCard, recoveredCard);
+
+    const periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
+    const togglePeriodButton = elementFactory('label', { class: 'switch' }, periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period:', togglePeriodButton);
+
+    const populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
+    const togglePopulationButton = elementFactory('label', { class: 'switch' }, populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population:', togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
+
+    this.covidInfoTableResize = elementFactory('button', { class: 'resize-button' }, 'clickme');
+
+    // const tableHeaderCountOfRecovered = elementFactory('th', {});
+    // tableHeaderCountOfRecovered.innerText = this.properties[0].header;
+    // const tableHeaderCountOfDeath = elementFactory('th', {});
+    // tableHeaderCountOfDeath.innerText = this.properties[1].header;
+    // const tableHeaderCountOfDesease = elementFactory('th', {});
+    // tableHeaderCountOfDesease.innerText = this.properties[2].header;
+    // const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
+
+    // const tableContentCountOfRecovered = elementFactory('td', { class: 'covid_info__CountOfRecovered' });
+    // const tableContentCountOfDeath = elementFactory('td', { class: 'covid_info__CountOfDeath' });
+    // const tableContentCountOfDesease = elementFactory('td', { class: 'covid_info__CountOfDesease' });
+    // const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
+
+    // const table = elementFactory('table', { class: 'covid_info__table' }, tableHeader, tableContent);
+    const container = elementFactory('div', { class: 'covid_info' }, this.covidInfoTableResize, this.infoTableHeader, controlGroup, infoCardContainer);
+    getElement('main').appendChild(container);
   }
 
   updateCovidInfoTable() {
@@ -307,12 +428,32 @@ export default class CovidDashboardView extends EventEmitter {
   }
 
   drawCovidInfoTable(data) {
-    const countOfDesease = document.querySelector('.covid_info__CountOfDesease');
-    const countOfDeath = document.querySelector('.covid_info__CountOfDeath');
-    const countOfRecovered = document.querySelector('.covid_info__CountOfRecovered');
-    countOfDesease.innerText = data[this.properties[0].name];
-    countOfDeath.innerText = data[this.properties[1].name];
-    countOfRecovered.innerText = data[this.properties[2].name];
+    // const countOfDesease = document.querySelector('.covid_info__CountOfDesease');
+    // const countOfDeath = document.querySelector('.covid_info__CountOfDeath');
+    // const countOfRecovered = document.querySelector('.covid_info__CountOfRecovered');
+    clearElement(this.infoTableHeader);
+    if (data.Country) {
+      const flag = elementFactory('img', { src: data.flag, class: 'flag-img' }, '');
+      this.infoTableHeader.appendChild(flag);
+    }
+    const country = elementFactory('span', {}, '');
+    country.textContent = data.Country || 'Global Cases';
+    this.infoTableHeader.appendChild(country);
+
+    const valueFormat = Intl.NumberFormat();
+
+    this.infoTableCasesHeader.textContent = this.properties[0].header;
+    this.infoTableCasesContent.textContent = data[this.properties[0].name] !== 0 ? valueFormat.format(data[this.properties[0].name]) : 'No record';
+
+    this.infoTableDeathHeader.textContent = this.properties[1].header;
+    this.infoTableDeathContent.textContent = data[this.properties[1].name] !== 0 ? valueFormat.format(data[this.properties[1].name]) : 'No record';
+
+    this.infoTableRecoveredHeader.textContent = this.properties[2].header;
+    this.infoTableRecoveredContent.textContent = data[this.properties[2].name] !== 0 ? valueFormat.format(data[this.properties[2].name]) : 'No record';
+
+    // countOfDesease.innerText = data[this.properties[0].name];
+    // countOfDeath.innerText = data[this.properties[1].name];
+    // countOfRecovered.innerText = data[this.properties[2].name];
   }
 
   mapInit() {
@@ -485,6 +626,7 @@ export default class CovidDashboardView extends EventEmitter {
         fillOpacity: 1,
         fillColor: getColor(value),
       };
+
       this_.stylesOfCountries.push(styleObj);
       return styleObj;
     }
@@ -545,6 +687,7 @@ export default class CovidDashboardView extends EventEmitter {
         }
       } else {
         this._div.innerHTML = '';
+
       }
     };
 

@@ -8,6 +8,7 @@ export default class CovidDate extends EventEmitter {
     super();
     this.data = [];
     this.init();
+    this.chartData = [];
   }
 
   init() {
@@ -40,7 +41,7 @@ export default class CovidDate extends EventEmitter {
         data.GlobalInfo.newDeathPer100k = Number(((data.GlobalInfo.NewDeaths / EARTH_POPULATION) * 100000).toFixed(5));
         data.GlobalInfo.newRecoveredPer100k = Number(((data.GlobalInfo.NewRecovered / EARTH_POPULATION) * 100000).toFixed(5));
         data.GlobalInfo.newConfirmedPer100k = Number(((data.GlobalInfo.NewConfirmed / EARTH_POPULATION) * 100000).toFixed(5));
-        console.log(data);
+        // console.log(data);
         return data;
       }
       // eslint-disable-next-line no-alert
@@ -50,6 +51,14 @@ export default class CovidDate extends EventEmitter {
     allData.then((data) => {
       this.data = data;
       this.emit('hasdata');
+    });
+  }
+
+  getDataByCountryName(name) {
+    const countryData = this.fetchData(`https://api.covid19api.com/total/dayone/country/${name}`);
+    countryData.then((data) => {
+      this.chartData = data;
+      this.emit('hascountrydata');
     });
   }
 
@@ -65,23 +74,6 @@ export default class CovidDate extends EventEmitter {
       alert('Data not found!');
     }
   }
-
-  // eslint-disable-next-line class-methods-use-this
-  async getDataAboutCountryByName(name) {
-    try {
-      const url = `https://api.covid19api.com/total/dayone/country/${name}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      return data;
-    } catch (err) {
-      // eslint-disable-next-line no-alert
-      alert('Data not found!');
-    }
-  }
-
-  // log() {
-  //   console.log(this.data);
-  // }
 
   сountriesInfoSort(value) {
     this.data.CountriesInfo = _.orderBy(this.data.CountriesInfo, [value], ['desc']);

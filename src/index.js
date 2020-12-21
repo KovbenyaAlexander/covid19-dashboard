@@ -2,6 +2,7 @@
 import _ from 'lodash';
 import './styles/style.scss';
 import './styles/toggle-button.scss';
+import './styles/toggle-styles.scss';
 
 import MainAppController from './js/controllers/MainAppController';
 
