@@ -37,9 +37,8 @@ export default class MainAppController {
       this.dashboardView.model = this.model;
       this.dashboardView.chartData = this.model.data.timeline;
       this.displayTable();
-      this.displayChart();
-      this.displayCovidInfoTable();
       this.updateCovidInfoTable();
+      this.displayChart();
       this.mapInit();
     });
     this.model.on('hascountrydata', () => {
