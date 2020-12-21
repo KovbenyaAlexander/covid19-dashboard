@@ -1,3 +1,4 @@
+/* eslint-disable no-else-return */
 /* eslint-disable no-alert */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-underscore-dangle */
@@ -456,12 +457,8 @@ export default class CovidDashboardView extends EventEmitter {
   }
 
   mapInit() {
-    const o = this;
-    // eslint-disable-next-line no-console
-    console.log('+');
-    // eslint-disable-next-line no-console
-    console.log(cData);
-
+    const this_ = this;
+    this.stylesOfCountries = [];
     const mapOptions = {
       center: [53, 28],
       zoom: 2,
@@ -469,36 +466,10 @@ export default class CovidDashboardView extends EventEmitter {
       minZoom: 2,
       maxZoom: 5,
     };
-    this.currentMarkers = [];
     this.map = new L.map('map', mapOptions);
     this.layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    this.model.data.CountriesInfo.forEach((countryInfo) => {
-      const circleCenter = [countryInfo.lat, countryInfo.lng];
-      const circleOptions = {
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.5,
-      };
-      const circleSizeCoefficient = 7;
-      const circle = L.circle(circleCenter, countryInfo[properties[0].name] / circleSizeCoefficient, circleOptions);
-      this.currentMarkers.push(circle);
-      circle.addTo(this.map);
-    });
-    this.layerGroup = L.layerGroup(this.currentMarkers);
-    this.layerGroup.addTo(this.map);
-    this.map.addEventListener('click', (event) => {
-      const countryCodeResponse = this.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
-      countryCodeResponse.then((code) => {
-        if (code) {
-          //-------------------------------------
-          this.selectedCountry = code;
-          this.updateCovidInfoTable();
-        }
-      });
-    });
-    this.layerGroup.addTo(this.map);
     this.geojson = L.geoJson(cData, {
-      style,
+      style: style.bind(this),
       onEachFeature: onEachFeature.bind(this),
     }).addTo(this.map);
     function highlightFeature(e) {
@@ -507,30 +478,35 @@ export default class CovidDashboardView extends EventEmitter {
         weight: 2,
         color: "#666",
         dashArray: "",
-        fillOpacity: 0.7,
+        fillOpacity: 1,
       });
 
       if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         layer.bringToFront();
       }
 
-      info.update(layer.feature.properties);
+      this.info.update(layer.feature.properties);
     }
-    var info = L.control();
-    info.onAdd = function (map) {
+    this.info = L.control();
+    this.info.onAdd = function (map) {
       this._div = L.DomUtil.create("div", "info");
       this.update();
       return this._div;
     };
 
-    info.update = function (props) {
-      this._div.innerHTML = '<h4>Information</h4>'
-        + (props
-          ? '<b>' + props.formal_en + '</b><br />' + props.iso_a2 + ' -CODE'
-          : 'Hover over ountry');
+    this.info.update = function (props) {
+      if (props) {
+        const currentValue = this_.model.data.CountriesInfo.find((item) => item.CountryCode === props.iso_a2);
+        if (currentValue) {
+          this._div.innerHTML = `<h4>${props.formal_en}  [${props.iso_a2}]</h4>
+          <h4>Total confirmed: ${currentValue.TotalConfirmed}</h4>`;
+        }
+      } else {
+        this._div.innerHTML = '';
+      }
     };
 
-    info.addTo(this.map);
+    this.info.addTo(this.map);
     function onEachFeature(feature, layer) {
       layer.on({
         mouseover: highlightFeature.bind(this),
@@ -540,72 +516,206 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function zoomToFeature(e) {
-      // eslint-disable-next-line no-console
-      console.log(e.target);
       this.map.fitBounds(e.target.getBounds());
     }
 
     function getColor(d) {
-      return d > 1000
-        ? "#800026"
-        : d > 500
-          ? "#BD0026"
-          : d > 200
-            ? "#E31A1C"
-            : d > 100
-              ? "#FC4E2A"
-              : d > 50
-                ? "#FD8D3C"
-                : d > 20
-                  ? "#FEB24C"
-                  : d > 10
-                    ? '#FED976'
-                    : '#FFEDA0';
+      const maxValue = 17000000;
+      /* return d > 10000000
+         ? "#9C0000"
+         : d > 1000000
+           ? "#FF3939"
+           : d > 100000
+             ? "#EC86A4"
+             : d > 1000
+               ? "#F5D1D1"
+               : '#F1E8E8'; */
+      if (d > maxValue * 0.5) {
+        return '#800000';
+      } else if (d > maxValue * 0.2) {
+        return '#990000';
+      } else if (d > maxValue * 0.1) {
+        return '#ff1a1a';
+      } else if (d > maxValue * 0.001) {
+        return '#ff6666';
+      } else {
+        return '#ffb3b3';
+      }
     }
 
     function style(feature) {
-      return {
+      const cC = _.find(this_.model.data.CountriesInfo, ['CountryCode', feature.properties.iso_a2]);
+      /* const prop = this_.properties[this_.tableCurrentProp].name; */
+      const prop = this_.properties[0].name;
+      let value = 10;
+      if (cC) {
+        value = cC[prop];
+      }
+      /* console.log(value); */
+      const styleObj = {
         weight: 2,
         opacity: 1,
         color: "white",
         dashArray: "3",
-        fillOpacity: 0.7,
-        fillColor: getColor(feature.properties.density),
+        fillOpacity: 1,
+        fillColor: getColor(value),
       };
+      this_.stylesOfCountries.push(styleObj);
+      return styleObj;
     }
 
     function resetHighlight(e) {
       this.geojson.resetStyle(e.target);
-      info.update();
+      this.info.update();
     }
 
     this.map.addLayer(this.layer);
+
+    this.geojson.addEventListener('click', (event) => {
+      const countryCodeResponse = this_.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
+      countryCodeResponse.then((code) => {
+        if (code) {
+          this_.selectedCountry = code;
+          this_.updateCovidInfoTable();
+        }
+      });
+    });
+
+    /* ---legend--- */
+    this.legend = L.control({ position: 'bottomright' });
+    this.legend.onAdd = function (map) {
+      this.div = L.DomUtil.create('div', 'info legend');
+      const grades = [0, 1000, 100000, 1000000, 10000000];
+      const labels = [];
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < grades.length; i += 1) {
+        this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+      }
+      return this.div;
+    };
+    this.legend.addTo(this.map);
   }
 
   mapUpdate(currentPropOfData) {
-    this.currentMarkers.forEach((item) => this.layerGroup.removeLayer(item));
-    this.currentMarkers = [];
-    this.model.data.CountriesInfo.forEach((countryInfo) => {
-      const circleCenter = [countryInfo.lat, countryInfo.lng];
-      const circleOptions = {
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.5,
-      };
-      let circleSizeCoefficient = 0.1;
-      // eslint-disable-next-line no-console
-      console.log(currentPropOfData);
-      if (currentPropOfData === 'TotalConfirmed') {
-        circleSizeCoefficient = 7;
-      } else if (currentPropOfData === 'totalConfirmedPer100k') {
-        circleSizeCoefficient = 0.03;
-      } else if (currentPropOfData === 'newConfirmedPer100k') {
-        circleSizeCoefficient = 0.0005;
+    const this_ = this;
+    this.currentDataForDisplay = this.model.data.CountriesInfo.map((item) => item[currentPropOfData]);
+    const maxValue = Math.max(...this.currentDataForDisplay);
+    this.stylesOfCountries.forEach((item) => this.geojson.removeLayer(item));
+
+    this.geojson = L.geoJson(cData, {
+      style: style.bind(this),
+      onEachFeature: onEachFeature.bind(this),
+    }).addTo(this.map);
+
+    function style(feature) {
+      const currentCountry = _.find(this_.model.data.CountriesInfo, ['CountryCode', feature.properties.iso_a2]);
+      /* const prop = this_.properties[this_.tableCurrentProp].name; */
+      // console.log(currentCountry);
+      const prop = this_.properties[0].name;
+      let value = 10;
+      if (currentCountry) {
+        value = currentCountry[currentPropOfData];
+        // console.log(value);
       }
-      const circle = L.circle(circleCenter, countryInfo[currentPropOfData] / circleSizeCoefficient, circleOptions);
-      this.currentMarkers.push(circle);
+      /* console.log(value); */
+      const styleObj = {
+        weight: 2,
+        opacity: 1,
+        color: "white",
+        dashArray: "3",
+        fillOpacity: 1,
+        fillColor: getColor(value),
+      };
+
+      this_.stylesOfCountries.push(styleObj);
+      return styleObj;
+    }
+
+    function getColor(d) {
+      if (d > maxValue * 0.5) {
+        return '#800000';
+      } else if (d > maxValue * 0.2) {
+        return '#990000';
+      } else if (d > maxValue * 0.1) {
+        return '#ff1a1a';
+      } else if (d > maxValue * 0.001) {
+        return '#ff6666';
+      } else {
+        return '#ffb3b3';
+      }
+    }
+
+    function onEachFeature(feature, layer) {
+      layer.on({
+        mouseover: highlightFeature.bind(this),
+        mouseout: resetHighlight.bind(this),
+        click: zoomToFeature.bind(this),
+      });
+    }
+
+    function zoomToFeature(e) {
+      this.map.fitBounds(e.target.getBounds());
+    }
+    function highlightFeature(e) {
+      var layer = e.target;
+      layer.setStyle({
+        weight: 2,
+        color: "#666",
+        dashArray: "",
+        fillOpacity: 1,
+      });
+
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+
+      this_.info.update(layer.feature.properties);
+    }
+    function resetHighlight(e) {
+      this_.geojson.resetStyle(e.target);
+      this_.info.update();
+    }
+    /* ---create additional info container--- */
+
+    this.info.update = function (props) {
+      if (props) {
+        const currentValue = this_.model.data.CountriesInfo.find((item) => item.CountryCode === props.iso_a2);
+        if (currentValue) {
+          const currentProperties = this_.properties.find((item) => item.name === currentPropOfData);
+          this._div.innerHTML = `<h4>${props.formal_en}  [${props.iso_a2}]</h4>
+          <h4>${currentProperties.header}: ${currentValue[currentPropOfData]}</h4>`;
+        }
+      } else {
+        this._div.innerHTML = '';
+
+      }
+    };
+
+    this.geojson.addEventListener('click', (event) => {
+      const countryCodeResponse = this_.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
+      countryCodeResponse.then((code) => {
+        if (code) {
+          this_.selectedCountry = code;
+          this_.updateCovidInfoTable();
+        }
+      });
     });
-    this.layerGroup = L.layerGroup(this.currentMarkers);
+    /* ---legend--- */
+    // this.map.removeLayer(this.legend);
+
+    this.legend.onAdd = function (map) {
+      // const div = L.DomUtil.create('div', 'info legend');
+      const grades = [0, (maxValue * 0.001).toFixed(3), (maxValue * 0.1).toFixed(3), (maxValue * 0.2).toFixed(3), (maxValue * 0.5).toFixed(3)];
+      const labels = [];
+      this.div.innerHTML = '';
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < grades.length; i += 1) {
+        this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+      }
+      return this.div;
+    };
+
+    this.legend.addTo(this.map);
   }
 
   async getCountryCodeBameByCoords(lt, lg) {
