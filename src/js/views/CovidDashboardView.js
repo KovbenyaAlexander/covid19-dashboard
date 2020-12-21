@@ -1,3 +1,4 @@
+/* eslint-disable no-else-return */
 /* eslint-disable no-alert */
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-underscore-dangle */
@@ -28,10 +29,13 @@ export default class CovidDashboardView extends EventEmitter {
     this.model = [];
     this.chartData = [];
     this.evnts = {};
-    this.createTableContainer();
-    this.setUpLocalListeners();
 
     this.properties = properties;
+    this.displayCovidInfoTable();
+    this.createTableContainer();
+    this.createMapContainer();
+    this.createChartContainer();
+    this.setUpLocalListeners();
 
     this.isLastDay = false;
     this.isPopulation = false;
@@ -47,26 +51,74 @@ export default class CovidDashboardView extends EventEmitter {
    * Creates application default page layer without any data.
    */
   createTableContainer() {
-    this.tableButtonPrev = elementFactory('button', {}, 'Prev');
-    this.tableButtonNext = elementFactory('button', {}, 'Next');
-    this.tableFilterInput = elementFactory('input', {}, '');
+    const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
+    const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
+    this.tableButtonPrev = elementFactory('button', { class: 'arrow-button' }, leftArrow);
+    this.tableButtonNext = elementFactory('button', { class: 'arrow-button' }, rightArrow);
 
-    this.tableHeader = elementFactory('div', { style: 'font-size:26px;' }, properties[0].header);
+    const searchLabel = elementFactory('label', { class: 'search-label', for: 'searchInput' }, 'Search country: ');
+    this.tableFilterInput = elementFactory('input', { class: 'country-search', id: 'searchInput' }, 'search country');
 
-    const periodSwitchHeader = elementFactory('span', {}, 'Period:');
+    const searchGroup = elementFactory('div', { class: 'search-group' }, searchLabel, this.tableFilterInput);
+
+    this.tableHeader = elementFactory('div', { class: 'table-header' }, properties[0].header);
+
+    const tableControl = elementFactory('div', { class: 'table-control' }, this.tableButtonPrev, this.tableHeader, this.tableButtonNext);
+
     this.periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
-    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last' }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
     this.togglePeriodButton = elementFactory('label', { class: 'switch' }, this.periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period: ', this.togglePeriodButton);
 
-    const populationSwitchHeader = elementFactory('span', {}, 'Population:');
     this.populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
     const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
     this.togglePopulationButton = elementFactory('label', { class: 'switch' }, this.populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population: ', this.togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
 
     this.table = elementFactory('div', { class: 'country-table' }, '');
-    this.container = elementFactory('div', { class: 'country-table-container' }, periodSwitchHeader, this.togglePeriodButton, populationSwitchHeader, this.togglePopulationButton,
-      this.tableButtonPrev, this.tableButtonNext, this.tableFilterInput, this.tableHeader, this.table);
-    getElement('main').appendChild(this.container);
+
+    const header = elementFactory('div', { class: 'country-container-header' }, 'Cases by Counry/Region/Province');
+
+    this.container = elementFactory('div', { class: 'country-table-container' }, header, controlGroup, searchGroup, tableControl, this.table);
+
+    this.tableMapContainer = elementFactory('div', { class: 'table-map-wrapper' }, this.container);
+    getElement('main').appendChild(this.tableMapContainer);
+  }
+
+  createMapContainer() {
+    const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
+    const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
+    this.mapButtonPrev = elementFactory('button', { class: 'arrow-button' }, leftArrow);
+    this.mapButtonNext = elementFactory('button', { class: 'arrow-button' }, rightArrow);
+
+    this.mapHeader = elementFactory('div', { class: 'map-header' }, properties[0].header);
+
+    const mapControl = elementFactory('div', { class: 'map-control' }, this.mapButtonPrev, this.mapHeader, this.mapButtonNext);
+
+    const periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
+    const togglePeriodButton = elementFactory('label', { class: 'switch' }, periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period:', togglePeriodButton);
+
+    const populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
+    const togglePopulationButton = elementFactory('label', { class: 'switch' }, populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population:', togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
+
+    this.map = elementFactory('div', { class: 'map-block', id: 'map' }, '');
+    const mapContainerHeader = elementFactory('div', { class: 'map-container-header' }, 'World map');
+    const mapContainer = elementFactory('div', { class: 'map-container' }, mapContainerHeader, controlGroup, mapControl, this.map);
+
+    this.tableMapContainer.appendChild(mapContainer);
+  }
+
+  resizeWindowElements() {
+    this.chartContainer.classList.toggle('hide-container');
+    this.tableMapContainer.classList.toggle('hide-container');
   }
 
   /**
@@ -152,23 +204,36 @@ export default class CovidDashboardView extends EventEmitter {
     this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  displayChart() {
-    const chartContainer = elementFactory('div', { class: 'chart_container' }, '');
+  createChartContainer() {
     const canvas = elementFactory('canvas', { id: 'chart', style: 'width: 2; height: 1' }, '');
-    const chartTitleContainer = elementFactory('div', { class: 'chart_title_container' }, '');
-    const chartTitle = elementFactory('h3', { class: 'chart_title' }, '');
+    this.chartTitle = elementFactory('div', { class: 'chart_title' }, this.properties[0].header);
     const rightArrow = elementFactory('i', { class: 'fas fa-angle-right' }, '');
     const leftArrow = elementFactory('i', { class: 'fas fa-angle-left' }, '');
-    chartTitle.textContent = 'Cases of Infection';
 
-    getElement('main').appendChild(chartContainer);
-    chartContainer.appendChild(canvas);
-    chartContainer.appendChild(chartTitleContainer);
-    chartTitleContainer.appendChild(leftArrow);
-    chartTitleContainer.appendChild(chartTitle);
-    chartTitleContainer.appendChild(rightArrow);
+    this.chartButtonPrev = elementFactory('button', { class: 'arrow-button' }, leftArrow);
+    this.chartButtonNext = elementFactory('button', { class: 'arrow-button' }, rightArrow);
 
+    const periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
+    const togglePeriodButton = elementFactory('label', { class: 'switch' }, periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period:', togglePeriodButton);
+
+    const populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
+    const togglePopulationButton = elementFactory('label', { class: 'switch' }, populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population:', togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
+
+    const chartTitleContainer = elementFactory('div', { class: 'chart_title_container' }, this.chartButtonPrev, this.chartTitle, this.chartButtonNext);
+
+    this.chartContainer = elementFactory('div', { class: 'chart_container' }, canvas, chartTitleContainer);
+
+    getElement('main').appendChild(this.chartContainer);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  displayChart() {
     this.aroundTheWorldCases = {
       Cases_of_Infection: [],
       Cases_of_Deaths: [],
@@ -188,36 +253,13 @@ export default class CovidDashboardView extends EventEmitter {
     this.aroundTheWorldCases.Cases_of_Recovery.reverse();
     this.aroundTheWorldCases.Dates_of_Updating.reverse();
 
-    let i = 0;
-
-    rightArrow.addEventListener('click', () => {
-      i += 1;
-      const key = Object.keys(this.aroundTheWorldCases)[i % 3];
-      this.myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
-      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
-      chartTitle.textContent = Object.keys(this.aroundTheWorldCases)[i % 3].split('_').join(' ');
-      this.myChart.update();
-    });
-
-    leftArrow.addEventListener('click', () => {
-      i -= 1;
-      if (i < 0) {
-        i = 2;
-      }
-      const key = Object.keys(this.aroundTheWorldCases)[(i % 3)];
-      this.myChart.data.datasets[0].label = `${key}`.split('_').join(' ');
-      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
-      chartTitle.textContent = Object.keys(this.aroundTheWorldCases)[i % 3].split('_').join(' ');
-      this.myChart.update();
-    });
-
     const ctx = document.querySelector('canvas').getContext('2d');
     this.myChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: this.aroundTheWorldCases.Dates_of_Updating,
         datasets: [{
-          label: 'Cases of Infection',
+          label: this.properties[0].header,
           data: this.aroundTheWorldCases.Cases_of_Infection,
           backgroundColor: 'rgba(247, 202, 80, 0.9)',
           borderColor: 'rgba(247, 202, 80, 1)',
@@ -230,7 +272,7 @@ export default class CovidDashboardView extends EventEmitter {
       options: {
         title: {
           display: true,
-          text: 'World Wide Info',
+          text: 'Global info',
         },
         scales: {
           yAxes: [{
@@ -249,15 +291,54 @@ export default class CovidDashboardView extends EventEmitter {
     });
   }
 
+  nextProp() {
+    if (this.tableCurrentProp < this.properties.length - 1) {
+      this.tableCurrentProp += 1;
+    } else {
+      this.tableCurrentProp = 0;
+    }
+  }
+
+  prevProp() {
+    if (this.tableCurrentProp > 0) {
+      this.tableCurrentProp -= 1;
+    } else {
+      this.tableCurrentProp = this.properties.length - 1;
+    }
+  }
+
   setUpLocalListeners() {
+    this.covidInfoTableResize.addEventListener('click', () => {
+      this.resizeWindowElements();
+    });
+
     this.tableButtonNext.addEventListener('click', () => {
-      if (this.tableCurrentProp < this.properties.length - 1) {
-        this.tableCurrentProp += 1;
-      } else {
-        this.tableCurrentProp = 0;
-      }
+      this.nextProp();
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
     });
+    this.tableButtonPrev.addEventListener('click', () => {
+      this.prevProp();
+      this.showCollumnTable(this.properties[this.tableCurrentProp].name);
+    });
+
+    this.chartButtonNext.addEventListener('click', () => {
+      this.nextProp();
+      const key = Object.keys(this.aroundTheWorldCases)[this.tableCurrentProp];
+      this.myChart.data.datasets[0].label = this.properties[this.tableCurrentProp].header;
+      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
+      this.chartTitle.textContent = this.properties[this.tableCurrentProp].header;
+      this.myChart.update();
+    });
+
+    this.chartButtonPrev.addEventListener('click', () => {
+      this.prevProp();
+      const key = Object.keys(this.aroundTheWorldCases)[this.tableCurrentProp];
+      this.myChart.data.datasets[0].label = this.properties[this.tableCurrentProp].header;
+      this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
+      this.chartTitle.textContent = this.properties[this.tableCurrentProp].header;
+      this.myChart.update();
+    });
+
     this.periodInput.addEventListener('change', () => {
       this.isLastDay = !this.isLastDay;
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
@@ -276,12 +357,11 @@ export default class CovidDashboardView extends EventEmitter {
     this.tableFilterInput.addEventListener('keyup', (e) => {
       const nameSpans = getElements('.cell-name');
       const searchString = e.target.value.toLowerCase();
-      nameSpans.forEach((span) => {
+      nameSpans.forEach((el) => {
+        const span = el;
         if (span.textContent.toLowerCase().indexOf(searchString) !== -1) {
-          // eslint-disable-next-line no-param-reassign
           span.closest('.table-row').classList.remove('row-hide');
         } else {
-          // eslint-disable-next-line no-param-reassign
           span.closest('.table-row').classList.add('row-hide');
         }
       });
@@ -290,21 +370,50 @@ export default class CovidDashboardView extends EventEmitter {
 
   // eslint-disable-next-line class-methods-use-this
   displayCovidInfoTable() {
-    const tableHeaderCountOfRecovered = elementFactory('th', {});
-    tableHeaderCountOfRecovered.innerText = 'Count of recovered';
-    const tableHeaderCountOfDeath = elementFactory('th', {});
-    tableHeaderCountOfDeath.innerText = 'Count of death';
-    const tableHeaderCountOfDesease = elementFactory('th', {});
-    tableHeaderCountOfDesease.innerText = 'Count of desease';
-    const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
+    this.infoTableCasesHeader = elementFactory('div', { class: 'card_header' }, this.properties[0].header);
+    this.infoTableCasesContent = elementFactory('div', { class: 'card_content' }, 'No data');
+    const casesCard = elementFactory('div', { class: 'covid-info-card' }, this.infoTableCasesHeader, this.infoTableCasesContent);
 
-    const tableContentCountOfRecovered = elementFactory('td', { class: 'covid_info__CountOfRecovered' });
-    const tableContentCountOfDeath = elementFactory('td', { class: 'covid_info__CountOfDeath' });
-    const tableContentCountOfDesease = elementFactory('td', { class: 'covid_info__CountOfDesease' });
-    const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
+    this.infoTableDeathHeader = elementFactory('div', { class: 'card_header--death' }, this.properties[1].header);
+    this.infoTableDeathContent = elementFactory('div', { class: 'card_content' }, 'No data');
+    const deathCard = elementFactory('div', { class: 'covid-info-card' }, this.infoTableDeathHeader, this.infoTableDeathContent);
 
-    const table = elementFactory('table', { class: 'covid_info__table' }, tableHeader, tableContent);
-    const container = elementFactory('div', { class: 'covid_info' }, table);
+    this.infoTableRecoveredHeader = elementFactory('div', { class: 'card_header--recovered' }, this.properties[2].header);
+    this.infoTableRecoveredContent = elementFactory('div', { class: 'card_content' }, 'No data');
+    const recoveredCard = elementFactory('div', { class: 'covid-info-card' }, this.infoTableRecoveredHeader, this.infoTableRecoveredContent);
+
+    this.infoTableHeader = elementFactory('div', { class: 'covid_info__header' }, 'Global Cases');
+    const infoCardContainer = elementFactory('div', { class: 'info-card-container' }, casesCard, deathCard, recoveredCard);
+
+    const periodInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const periodSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Last day' }, '');
+    const togglePeriodButton = elementFactory('label', { class: 'switch' }, periodInput, periodSlider);
+    const periodSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Period:', togglePeriodButton);
+
+    const populationInput = elementFactory('input', { type: 'checkbox', checked: true }, '');
+    const populationSlider = elementFactory('span', { class: 'slider round', 'data-on': 'Total', 'data-off': 'Per 100k' }, '');
+    const togglePopulationButton = elementFactory('label', { class: 'switch' }, populationInput, populationSlider);
+    const populationSwitchHeader = elementFactory('span', { class: 'control-header' }, 'Population:', togglePopulationButton);
+
+    const controlGroup = elementFactory('div', { class: 'control-group' }, periodSwitchHeader, populationSwitchHeader);
+
+    this.covidInfoTableResize = elementFactory('button', { class: 'resize-button' }, 'clickme');
+
+    // const tableHeaderCountOfRecovered = elementFactory('th', {});
+    // tableHeaderCountOfRecovered.innerText = this.properties[0].header;
+    // const tableHeaderCountOfDeath = elementFactory('th', {});
+    // tableHeaderCountOfDeath.innerText = this.properties[1].header;
+    // const tableHeaderCountOfDesease = elementFactory('th', {});
+    // tableHeaderCountOfDesease.innerText = this.properties[2].header;
+    // const tableHeader = elementFactory('tr', {}, tableHeaderCountOfDesease, tableHeaderCountOfDeath, tableHeaderCountOfRecovered);
+
+    // const tableContentCountOfRecovered = elementFactory('td', { class: 'covid_info__CountOfRecovered' });
+    // const tableContentCountOfDeath = elementFactory('td', { class: 'covid_info__CountOfDeath' });
+    // const tableContentCountOfDesease = elementFactory('td', { class: 'covid_info__CountOfDesease' });
+    // const tableContent = elementFactory('tr', {}, tableContentCountOfDesease, tableContentCountOfDeath, tableContentCountOfRecovered);
+
+    // const table = elementFactory('table', { class: 'covid_info__table' }, tableHeader, tableContent);
+    const container = elementFactory('div', { class: 'covid_info' }, this.covidInfoTableResize, this.infoTableHeader, controlGroup, infoCardContainer);
     getElement('main').appendChild(container);
   }
 
@@ -319,21 +428,37 @@ export default class CovidDashboardView extends EventEmitter {
   }
 
   drawCovidInfoTable(data) {
-    const countOfDesease = document.querySelector('.covid_info__CountOfDesease');
-    const countOfDeath = document.querySelector('.covid_info__CountOfDeath');
-    const countOfRecovered = document.querySelector('.covid_info__CountOfRecovered');
-    countOfDesease.innerText = data[this.properties[0].name];
-    countOfDeath.innerText = data[this.properties[1].name];
-    countOfRecovered.innerText = data[this.properties[2].name];
+    // const countOfDesease = document.querySelector('.covid_info__CountOfDesease');
+    // const countOfDeath = document.querySelector('.covid_info__CountOfDeath');
+    // const countOfRecovered = document.querySelector('.covid_info__CountOfRecovered');
+    clearElement(this.infoTableHeader);
+    if (data.Country) {
+      const flag = elementFactory('img', { src: data.flag, class: 'flag-img' }, '');
+      this.infoTableHeader.appendChild(flag);
+    }
+    const country = elementFactory('span', {}, '');
+    country.textContent = data.Country || 'Global Cases';
+    this.infoTableHeader.appendChild(country);
+
+    const valueFormat = Intl.NumberFormat();
+
+    this.infoTableCasesHeader.textContent = this.properties[0].header;
+    this.infoTableCasesContent.textContent = data[this.properties[0].name] !== 0 ? valueFormat.format(data[this.properties[0].name]) : 'No record';
+
+    this.infoTableDeathHeader.textContent = this.properties[1].header;
+    this.infoTableDeathContent.textContent = data[this.properties[1].name] !== 0 ? valueFormat.format(data[this.properties[1].name]) : 'No record';
+
+    this.infoTableRecoveredHeader.textContent = this.properties[2].header;
+    this.infoTableRecoveredContent.textContent = data[this.properties[2].name] !== 0 ? valueFormat.format(data[this.properties[2].name]) : 'No record';
+
+    // countOfDesease.innerText = data[this.properties[0].name];
+    // countOfDeath.innerText = data[this.properties[1].name];
+    // countOfRecovered.innerText = data[this.properties[2].name];
   }
 
   mapInit() {
-    const o = this;
-    // eslint-disable-next-line no-console
-    console.log('+');
-    // eslint-disable-next-line no-console
-    console.log(cData);
-
+    const this_ = this;
+    this.stylesOfCountries = [];
     const mapOptions = {
       center: [53, 28],
       zoom: 2,
@@ -341,36 +466,10 @@ export default class CovidDashboardView extends EventEmitter {
       minZoom: 2,
       maxZoom: 5,
     };
-    this.currentMarkers = [];
     this.map = new L.map('map', mapOptions);
     this.layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    this.model.data.CountriesInfo.forEach((countryInfo) => {
-      const circleCenter = [countryInfo.lat, countryInfo.lng];
-      const circleOptions = {
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.5,
-      };
-      const circleSizeCoefficient = 7;
-      const circle = L.circle(circleCenter, countryInfo[properties[0].name] / circleSizeCoefficient, circleOptions);
-      this.currentMarkers.push(circle);
-      circle.addTo(this.map);
-    });
-    this.layerGroup = L.layerGroup(this.currentMarkers);
-    this.layerGroup.addTo(this.map);
-    this.map.addEventListener('click', (event) => {
-      const countryCodeResponse = this.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
-      countryCodeResponse.then((code) => {
-        if (code) {
-          //-------------------------------------
-          this.selectedCountry = code;
-          this.updateCovidInfoTable();
-        }
-      });
-    });
-    this.layerGroup.addTo(this.map);
     this.geojson = L.geoJson(cData, {
-      style,
+      style: style.bind(this),
       onEachFeature: onEachFeature.bind(this),
     }).addTo(this.map);
     function highlightFeature(e) {
@@ -379,30 +478,35 @@ export default class CovidDashboardView extends EventEmitter {
         weight: 2,
         color: "#666",
         dashArray: "",
-        fillOpacity: 0.7,
+        fillOpacity: 1,
       });
 
       if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         layer.bringToFront();
       }
 
-      info.update(layer.feature.properties);
+      this.info.update(layer.feature.properties);
     }
-    var info = L.control();
-    info.onAdd = function (map) {
+    this.info = L.control();
+    this.info.onAdd = function (map) {
       this._div = L.DomUtil.create("div", "info");
       this.update();
       return this._div;
     };
 
-    info.update = function (props) {
-      this._div.innerHTML = '<h4>Information</h4>'
-        + (props
-          ? '<b>' + props.formal_en + '</b><br />' + props.iso_a2 + ' -CODE'
-          : 'Hover over ountry');
+    this.info.update = function (props) {
+      if (props) {
+        const currentValue = this_.model.data.CountriesInfo.find((item) => item.CountryCode === props.iso_a2);
+        if (currentValue) {
+          this._div.innerHTML = `<h4>${props.formal_en}  [${props.iso_a2}]</h4>
+          <h4>Total confirmed: ${currentValue.TotalConfirmed}</h4>`;
+        }
+      } else {
+        this._div.innerHTML = '';
+      }
     };
 
-    info.addTo(this.map);
+    this.info.addTo(this.map);
     function onEachFeature(feature, layer) {
       layer.on({
         mouseover: highlightFeature.bind(this),
@@ -412,72 +516,206 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function zoomToFeature(e) {
-      // eslint-disable-next-line no-console
-      console.log(e.target);
       this.map.fitBounds(e.target.getBounds());
     }
 
     function getColor(d) {
-      return d > 1000
-        ? "#800026"
-        : d > 500
-          ? "#BD0026"
-          : d > 200
-            ? "#E31A1C"
-            : d > 100
-              ? "#FC4E2A"
-              : d > 50
-                ? "#FD8D3C"
-                : d > 20
-                  ? "#FEB24C"
-                  : d > 10
-                    ? '#FED976'
-                    : '#FFEDA0';
+      const maxValue = 17000000;
+      /* return d > 10000000
+         ? "#9C0000"
+         : d > 1000000
+           ? "#FF3939"
+           : d > 100000
+             ? "#EC86A4"
+             : d > 1000
+               ? "#F5D1D1"
+               : '#F1E8E8'; */
+      if (d > maxValue * 0.5) {
+        return '#800000';
+      } else if (d > maxValue * 0.2) {
+        return '#990000';
+      } else if (d > maxValue * 0.1) {
+        return '#ff1a1a';
+      } else if (d > maxValue * 0.001) {
+        return '#ff6666';
+      } else {
+        return '#ffb3b3';
+      }
     }
 
     function style(feature) {
-      return {
+      const cC = _.find(this_.model.data.CountriesInfo, ['CountryCode', feature.properties.iso_a2]);
+      /* const prop = this_.properties[this_.tableCurrentProp].name; */
+      const prop = this_.properties[0].name;
+      let value = 10;
+      if (cC) {
+        value = cC[prop];
+      }
+      /* console.log(value); */
+      const styleObj = {
         weight: 2,
         opacity: 1,
         color: "white",
         dashArray: "3",
-        fillOpacity: 0.7,
-        fillColor: getColor(feature.properties.density),
+        fillOpacity: 1,
+        fillColor: getColor(value),
       };
+      this_.stylesOfCountries.push(styleObj);
+      return styleObj;
     }
 
     function resetHighlight(e) {
       this.geojson.resetStyle(e.target);
-      info.update();
+      this.info.update();
     }
 
     this.map.addLayer(this.layer);
+
+    this.geojson.addEventListener('click', (event) => {
+      const countryCodeResponse = this_.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
+      countryCodeResponse.then((code) => {
+        if (code) {
+          this_.selectedCountry = code;
+          this_.updateCovidInfoTable();
+        }
+      });
+    });
+
+    /* ---legend--- */
+    this.legend = L.control({ position: 'bottomright' });
+    this.legend.onAdd = function (map) {
+      this.div = L.DomUtil.create('div', 'info legend');
+      const grades = [0, 1000, 100000, 1000000, 10000000];
+      const labels = [];
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < grades.length; i += 1) {
+        this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+      }
+      return this.div;
+    };
+    this.legend.addTo(this.map);
   }
 
   mapUpdate(currentPropOfData) {
-    this.currentMarkers.forEach((item) => this.layerGroup.removeLayer(item));
-    this.currentMarkers = [];
-    this.model.data.CountriesInfo.forEach((countryInfo) => {
-      const circleCenter = [countryInfo.lat, countryInfo.lng];
-      const circleOptions = {
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.5,
-      };
-      let circleSizeCoefficient = 0.1;
-      // eslint-disable-next-line no-console
-      console.log(currentPropOfData);
-      if (currentPropOfData === 'TotalConfirmed') {
-        circleSizeCoefficient = 7;
-      } else if (currentPropOfData === 'totalConfirmedPer100k') {
-        circleSizeCoefficient = 0.03;
-      } else if (currentPropOfData === 'newConfirmedPer100k') {
-        circleSizeCoefficient = 0.0005;
+    const this_ = this;
+    this.currentDataForDisplay = this.model.data.CountriesInfo.map((item) => item[currentPropOfData]);
+    const maxValue = Math.max(...this.currentDataForDisplay);
+    this.stylesOfCountries.forEach((item) => this.geojson.removeLayer(item));
+
+    this.geojson = L.geoJson(cData, {
+      style: style.bind(this),
+      onEachFeature: onEachFeature.bind(this),
+    }).addTo(this.map);
+
+    function style(feature) {
+      const currentCountry = _.find(this_.model.data.CountriesInfo, ['CountryCode', feature.properties.iso_a2]);
+      /* const prop = this_.properties[this_.tableCurrentProp].name; */
+      // console.log(currentCountry);
+      const prop = this_.properties[0].name;
+      let value = 10;
+      if (currentCountry) {
+        value = currentCountry[currentPropOfData];
+        // console.log(value);
       }
-      const circle = L.circle(circleCenter, countryInfo[currentPropOfData] / circleSizeCoefficient, circleOptions);
-      this.currentMarkers.push(circle);
+      /* console.log(value); */
+      const styleObj = {
+        weight: 2,
+        opacity: 1,
+        color: "white",
+        dashArray: "3",
+        fillOpacity: 1,
+        fillColor: getColor(value),
+      };
+
+      this_.stylesOfCountries.push(styleObj);
+      return styleObj;
+    }
+
+    function getColor(d) {
+      if (d > maxValue * 0.5) {
+        return '#800000';
+      } else if (d > maxValue * 0.2) {
+        return '#990000';
+      } else if (d > maxValue * 0.1) {
+        return '#ff1a1a';
+      } else if (d > maxValue * 0.001) {
+        return '#ff6666';
+      } else {
+        return '#ffb3b3';
+      }
+    }
+
+    function onEachFeature(feature, layer) {
+      layer.on({
+        mouseover: highlightFeature.bind(this),
+        mouseout: resetHighlight.bind(this),
+        click: zoomToFeature.bind(this),
+      });
+    }
+
+    function zoomToFeature(e) {
+      this.map.fitBounds(e.target.getBounds());
+    }
+    function highlightFeature(e) {
+      var layer = e.target;
+      layer.setStyle({
+        weight: 2,
+        color: "#666",
+        dashArray: "",
+        fillOpacity: 1,
+      });
+
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+
+      this_.info.update(layer.feature.properties);
+    }
+    function resetHighlight(e) {
+      this_.geojson.resetStyle(e.target);
+      this_.info.update();
+    }
+    /* ---create additional info container--- */
+
+    this.info.update = function (props) {
+      if (props) {
+        const currentValue = this_.model.data.CountriesInfo.find((item) => item.CountryCode === props.iso_a2);
+        if (currentValue) {
+          const currentProperties = this_.properties.find((item) => item.name === currentPropOfData);
+          this._div.innerHTML = `<h4>${props.formal_en}  [${props.iso_a2}]</h4>
+          <h4>${currentProperties.header}: ${currentValue[currentPropOfData]}</h4>`;
+        }
+      } else {
+        this._div.innerHTML = '';
+
+      }
+    };
+
+    this.geojson.addEventListener('click', (event) => {
+      const countryCodeResponse = this_.getCountryCodeBameByCoords(event.latlng.lat, event.latlng.lng);
+      countryCodeResponse.then((code) => {
+        if (code) {
+          this_.selectedCountry = code;
+          this_.updateCovidInfoTable();
+        }
+      });
     });
-    this.layerGroup = L.layerGroup(this.currentMarkers);
+    /* ---legend--- */
+    // this.map.removeLayer(this.legend);
+
+    this.legend.onAdd = function (map) {
+      // const div = L.DomUtil.create('div', 'info legend');
+      const grades = [0, (maxValue * 0.001).toFixed(3), (maxValue * 0.1).toFixed(3), (maxValue * 0.2).toFixed(3), (maxValue * 0.5).toFixed(3)];
+      const labels = [];
+      this.div.innerHTML = '';
+      // loop through our density intervals and generate a label with a colored square for each interval
+      for (var i = 0; i < grades.length; i += 1) {
+        this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+      }
+      return this.div;
+    };
+
+    this.legend.addTo(this.map);
   }
 
   async getCountryCodeBameByCoords(lt, lg) {
