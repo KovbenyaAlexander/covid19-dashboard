@@ -174,6 +174,7 @@ export default class CovidDashboardView extends EventEmitter {
       row.onclick = () => {
         // eslint-disable-next-line no-alert
         // alert(`${country.Country} || ${country.CountryCode}`);
+        this.moveTheMap(country.CountryCode);
         this.selectedCountry = country.CountryCode;
         this.updateCovidInfoTable();
         this.emit('updatedata', country.Country);
@@ -518,20 +519,12 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function zoomToFeature(e) {
+      console.log(e.target);
       this.map.fitBounds(e.target.getBounds());
     }
 
     function getColor(d) {
       const maxValue = 17000000;
-      /* return d > 10000000
-         ? "#9C0000"
-         : d > 1000000
-           ? "#FF3939"
-           : d > 100000
-             ? "#EC86A4"
-             : d > 1000
-               ? "#F5D1D1"
-               : '#F1E8E8'; */
       if (d > maxValue * 0.5) {
         return '#800000';
       } else if (d > maxValue * 0.2) {
@@ -547,13 +540,11 @@ export default class CovidDashboardView extends EventEmitter {
 
     function style(feature) {
       const cC = _.find(this_.model.data.CountriesInfo, ['CountryCode', feature.properties.iso_a2]);
-      /* const prop = this_.properties[this_.tableCurrentProp].name; */
       const prop = this_.properties[0].name;
       let value = 10;
       if (cC) {
         value = cC[prop];
       }
-      /* console.log(value); */
       const styleObj = {
         weight: 2,
         opacity: 1,
@@ -589,7 +580,6 @@ export default class CovidDashboardView extends EventEmitter {
       this.div = L.DomUtil.create('div', 'info legend');
       const grades = [0, 1000, 100000, 1000000, 10000000];
       const labels = [];
-      // loop through our density intervals and generate a label with a colored square for each interval
       for (let i = 0; i < grades.length; i += 1) {
         this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
       }
@@ -599,6 +589,7 @@ export default class CovidDashboardView extends EventEmitter {
   }
 
   mapUpdate(currentPropOfData) {
+    // this.map.setView([53, 23], 4);
     const this_ = this;
     this.currentDataForDisplay = this.model.data.CountriesInfo.map((item) => item[currentPropOfData]);
     const maxValue = Math.max(...this.currentDataForDisplay);
@@ -611,15 +602,11 @@ export default class CovidDashboardView extends EventEmitter {
 
     function style(feature) {
       const currentCountry = _.find(this_.model.data.CountriesInfo, ['CountryCode', feature.properties.iso_a2]);
-      /* const prop = this_.properties[this_.tableCurrentProp].name; */
-      // console.log(currentCountry);
       const prop = this_.properties[0].name;
       let value = 10;
       if (currentCountry) {
         value = currentCountry[currentPropOfData];
-        // console.log(value);
       }
-      /* console.log(value); */
       const styleObj = {
         weight: 2,
         opacity: 1,
@@ -702,21 +689,22 @@ export default class CovidDashboardView extends EventEmitter {
       });
     });
     /* ---legend--- */
-    // this.map.removeLayer(this.legend);
 
     this.legend.onAdd = function (map) {
-      // const div = L.DomUtil.create('div', 'info legend');
       const grades = [0, (maxValue * 0.001).toFixed(3), (maxValue * 0.1).toFixed(3), (maxValue * 0.2).toFixed(3), (maxValue * 0.5).toFixed(3)];
-      const labels = [];
       this.div.innerHTML = '';
-      // loop through our density intervals and generate a label with a colored square for each interval
       for (let i = 0; i < grades.length; i += 1) {
         this.div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i> ' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
       }
       return this.div;
     };
-
     this.legend.addTo(this.map);
+  }
+
+  moveTheMap(countryCode) {
+    const countriesInfo = Object.values(this.geojson._layers);
+    const currentCountryInfo = countriesInfo.find((countryInfo) => countryInfo.feature.properties.iso_a2 === countryCode);
+    this.map.fitBounds(currentCountryInfo.getBounds());
   }
 
   async getCountryCodeBameByCoords(lt, lg) {
@@ -727,7 +715,6 @@ export default class CovidDashboardView extends EventEmitter {
         const data = await res.json();
         return data;
       } catch (err) {
-        // eslint-disable-next-line no-alert
         alert('Something went wrong');
       }
       return data;
