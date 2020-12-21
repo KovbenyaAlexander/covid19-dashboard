@@ -43,6 +43,7 @@ export default class MainAppController {
     });
     this.model.on('hascountrydata', () => {
       this.dashboardView.chartData = this.model.chartData;
+      this.dashboardView.updateChart();
       // console.log(this.dashboardView.chartData);
     });
     this.dashboardView.on('updatedata', (name) => this.updateChartData(name));

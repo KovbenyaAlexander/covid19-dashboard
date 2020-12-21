@@ -178,22 +178,6 @@ export default class CovidDashboardView extends EventEmitter {
         this.selectedCountry = country.CountryCode;
         this.updateCovidInfoTable();
         this.emit('updatedata', country.Country);
-        setTimeout(() => {
-          this.aroundTheWorldCases.Cases_of_Infection = [];
-          this.aroundTheWorldCases.Cases_of_Deaths = [];
-          this.aroundTheWorldCases.Cases_of_Recovery = [];
-          this.aroundTheWorldCases.Dates_of_Updating = [];
-          this.chartData.forEach((item) => {
-            this.aroundTheWorldCases.Cases_of_Infection.push(item.Confirmed);
-            this.aroundTheWorldCases.Cases_of_Deaths.push(item.Deaths);
-            this.aroundTheWorldCases.Cases_of_Recovery.push(item.Recovered);
-            this.aroundTheWorldCases.Dates_of_Updating.push(`${item.Date.split('-')[1]} ${item.Date.split('-')[0]}`);
-          });
-          this.myChart.data.datasets[0].data = this.aroundTheWorldCases.Cases_of_Infection;
-          this.myChart.data.labels = this.aroundTheWorldCases.Dates_of_Updating;
-          this.myChart.options.title.text = `${this.chartData[0].Country}`;
-          this.myChart.update();
-        }, 1000);
       };
 
       rows.push(row);
@@ -203,6 +187,23 @@ export default class CovidDashboardView extends EventEmitter {
     });
     this.sortTable();
     this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
+  }
+
+  updateChart() {
+    this.aroundTheWorldCases.Cases_of_Infection = [];
+    this.aroundTheWorldCases.Cases_of_Deaths = [];
+    this.aroundTheWorldCases.Cases_of_Recovery = [];
+    this.aroundTheWorldCases.Dates_of_Updating = [];
+    this.chartData.forEach((item) => {
+      this.aroundTheWorldCases.Cases_of_Infection.push(item.Confirmed);
+      this.aroundTheWorldCases.Cases_of_Deaths.push(item.Deaths);
+      this.aroundTheWorldCases.Cases_of_Recovery.push(item.Recovered);
+      this.aroundTheWorldCases.Dates_of_Updating.push(`${item.Date.split('-')[1]} ${item.Date.split('-')[0]}`);
+    });
+    this.myChart.data.datasets[0].data = this.aroundTheWorldCases.Cases_of_Infection;
+    this.myChart.data.labels = this.aroundTheWorldCases.Dates_of_Updating;
+    this.myChart.options.title.text = `${this.chartData[0].Country}`;
+    this.myChart.update();
   }
 
   createChartContainer() {
@@ -725,7 +726,8 @@ export default class CovidDashboardView extends EventEmitter {
     await response.then((data) => {
       if (data.results[0].components.country_code) {
         code = data.results[0].components.country_code.toUpperCase();
-        alert(`${data.results[0].components.country} --> ${data.results[0].components.country_code}`);
+        // alert(`${data.results[0].components.country} --> ${data.results[0].components.country_code}`);
+        this.emit('updatedata', data.results[0].components.country);
       } else {
         code = null;
         alert('Results not found');
