@@ -20,7 +20,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #b8da96;
+  background-color: #76cfec;
   -webkit-transition: 0.4s;
   transition: 0.4s;
   display: flex;
@@ -43,7 +43,7 @@
 
 .slider:after {
   content: attr(data-off);
-  color: #778747;
+  color: #22577d;
   position: absolute;
   padding-left: 20px;
   transition: all 0.4s;
