@@ -32,14 +32,23 @@ export default class MainAppController {
     this.dashboardView.mapInit();
   }
 
+  displayNoData() {
+    this.dashboardView.displayNoData();
+  }
+
   setUplocalListeners() {
     this.model.on('hasdata', () => {
       this.dashboardView.model = this.model;
       this.dashboardView.chartData = this.model.data.timeline;
+      this.dashboardView.isNoData = false;
       this.displayTable();
       this.updateCovidInfoTable();
       this.displayChart();
       this.mapInit();
+    });
+    this.model.on('hasnodata', () => {
+      this.dashboardView.isNoData = true;
+      this.displayNoData();
     });
     this.model.on('hascountrydata', () => {
       this.dashboardView.chartData = this.model.chartData;
