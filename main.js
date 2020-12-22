@@ -1616,7 +1616,7 @@ class CovidDashboardView extends _models_EventEmitter__WEBPACK_IMPORTED_MODULE_2
       maxZoom: 5
     };
     this.map = new L.map('map', mapOptions);
-    this.layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    this.layer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
     this.geojson = L.geoJson(_helpers_countries__WEBPACK_IMPORTED_MODULE_4__["default"], {
       style: style.bind(this),
       onEachFeature: onEachFeature.bind(this)
