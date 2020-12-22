@@ -44,11 +44,12 @@ export default class CovidDate extends EventEmitter {
         // console.log(data);
         return data;
       }
-      // eslint-disable-next-line no-alert
-      alert('Data not found!');
-      return null;
     });
     allData.then((data) => {
+      if (!data) {
+        this.emit('hasnodata');
+        return;
+      }
       this.data = data;
       this.emit('hasdata');
     });
@@ -70,8 +71,7 @@ export default class CovidDate extends EventEmitter {
       const data = await res.json();
       return data;
     } catch (err) {
-      // eslint-disable-next-line no-alert
-      alert('Data not found!');
+      this.emit('hasnodata');
     }
   }
 

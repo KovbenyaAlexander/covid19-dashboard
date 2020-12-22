@@ -21,8 +21,8 @@
   right: 0;
   bottom: 0;
   background-color: #76cfec;
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
+  -webkit-transition: 0.7s;
+  transition: 0.7s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,8 +37,8 @@
   bottom: 4px;
   z-index: 2;
   background-color: white;
-  -webkit-transition: 0.4s;
-  transition: 0.4s;
+  -webkit-transition: 0.7s;
+  transition: 0.7s;
 }
 
 .slider:after {
@@ -46,7 +46,7 @@
   color: #22577d;
   position: absolute;
   padding-left: 20px;
-  transition: all 0.4s;
+  transition: all 0.7s;
 }
 
 input:checked + .slider {
