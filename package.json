@@ -57,6 +57,7 @@
     "@babel/polyfill": "^7.12.1",
     "chart.js": "^2.9.4",
     "leaflet": "^1.7.1",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "simple-keyboard": "^2.32.68"
   }
 }

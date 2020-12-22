@@ -14,6 +14,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable new-cap */
 import Chart from 'chart.js';
+import Keyboard from 'simple-keyboard';
 import EventEmitter from '../models/EventEmitter';
 import {
   elementFactory, clearElement, getElement, getElements,
@@ -83,7 +84,25 @@ export default class CovidDashboardView extends EventEmitter {
 
     this.container = elementFactory('div', { class: 'country-table-container' }, header, controlGroup, searchGroup, tableControl, this.table);
 
-    this.tableMapContainer = elementFactory('div', { class: 'table-map-wrapper' }, this.container);
+    this.keyboard = new Keyboard({
+      onChange: (input) => {
+        this.tableFilterInput.value = input;
+        this.filterTable(input);
+      },
+      onKeyPress: (button) => {
+        if (button === "{enter}") {
+          this.simpleKeyboard.classList.remove('show-keyboard');
+        }
+        if (button === "{shift}" || button === "{lock}") {
+          const currentLayout = this.keyboard.options.layoutName;
+          const shiftToggle = currentLayout === "default" ? "shift" : "default";
+          this.keyboard.setOptions({
+            layoutName: shiftToggle,
+          });
+          this.simpleKeyboard.classList.add('show-keyboard');
+        }
+      },
+    });
     getElement('main').appendChild(this.tableMapContainer);
   }
 
@@ -352,6 +371,15 @@ export default class CovidDashboardView extends EventEmitter {
       this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
       this.updateCovidInfoTable();
+    this.tableFilterInput.addEventListener('input', (e) => {
+      if (this.isNoData) { return; }
+      this.simpleKeyboard.classList.add('show-keyboard');
+      this.keyboard.setInput(e.target.value);
+    });
+    this.tableFilterInput.addEventListener('focus', (e) => {
+      if (this.isNoData) { return; }
+      this.simpleKeyboard.classList.add('show-keyboard');
+    });
       this.mapUpdate(this.properties[this.tableCurrentProp].name);
     });
 
