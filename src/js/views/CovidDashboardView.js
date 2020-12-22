@@ -467,7 +467,7 @@ export default class CovidDashboardView extends EventEmitter {
       center: [53, 28],
       zoom: 2,
       worldCopyJump: true,
-      minZoom: 2,
+      minZoom: 1,
       maxZoom: 5,
     };
     this.map = new L.map('map', mapOptions);
@@ -705,7 +705,9 @@ export default class CovidDashboardView extends EventEmitter {
   moveTheMap(countryCode) {
     const countriesInfo = Object.values(this.geojson._layers);
     const currentCountryInfo = countriesInfo.find((countryInfo) => countryInfo.feature.properties.iso_a2 === countryCode);
-    this.map.fitBounds(currentCountryInfo.getBounds());
+    if (currentCountryInfo) {
+      this.map.fitBounds(currentCountryInfo.getBounds());
+    }
   }
 
   async getCountryCodeBameByCoords(lt, lg) {
