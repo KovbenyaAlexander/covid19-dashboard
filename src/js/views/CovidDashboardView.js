@@ -229,16 +229,45 @@ export default class CovidDashboardView extends EventEmitter {
     this.aroundTheWorldCases.Cases_of_Infection = [];
     this.aroundTheWorldCases.Cases_of_Deaths = [];
     this.aroundTheWorldCases.Cases_of_Recovery = [];
-    this.aroundTheWorldCases.Dates_of_Updating = [];
-    this.chartData.forEach((item) => {
-      this.aroundTheWorldCases.Cases_of_Infection.push(item.Confirmed);
-      this.aroundTheWorldCases.Cases_of_Deaths.push(item.Deaths);
-      this.aroundTheWorldCases.Cases_of_Recovery.push(item.Recovered);
-      this.aroundTheWorldCases.Dates_of_Updating.push(`${item.Date.split('-')[1]} ${item.Date.split('-')[0]}`);
-    });
-    this.myChart.data.datasets[0].data = this.aroundTheWorldCases.Cases_of_Infection;
-    this.myChart.data.labels = this.aroundTheWorldCases.Dates_of_Updating;
-    this.myChart.options.title.text = `${this.chartData[0].Country}`;
+    if (this.selectedCountry) {
+      this.aroundTheWorldCases.Dates_of_Updating = [];
+      const countryInfo = this.model.data.CountriesInfo.find((item) => item.CountryCode === this.selectedCountry);
+      const countryPopulationPer100k = countryInfo.population / 100000;
+      this.chartData.forEach((item) => {
+        if (this.isPopulation) {
+          this.aroundTheWorldCases.Cases_of_Infection.push((item.Confirmed / countryPopulationPer100k).toFixed(5));
+          this.aroundTheWorldCases.Cases_of_Deaths.push((item.Deaths / countryPopulationPer100k).toFixed(5));
+          this.aroundTheWorldCases.Cases_of_Recovery.push((item.Recovered / countryPopulationPer100k).toFixed(5));
+        } else {
+          this.aroundTheWorldCases.Cases_of_Infection.push(item.Confirmed);
+          this.aroundTheWorldCases.Cases_of_Deaths.push(item.Deaths);
+          this.aroundTheWorldCases.Cases_of_Recovery.push(item.Recovered);
+        }
+        this.aroundTheWorldCases.Dates_of_Updating.push(`${item.Date.split('-')[1]} ${item.Date.split('-')[0]}`);
+      });
+      this.myChart.data.labels = this.aroundTheWorldCases.Dates_of_Updating;
+      this.myChart.options.title.text = `${this.chartData[0].Country}`;
+    } else {
+      const earthPopulationPer100k = this.model.data.GlobalInfo.earth_population / 100000;
+      this.chartData.forEach((item) => {
+        if (this.isPopulation) {
+          this.aroundTheWorldCases.Cases_of_Infection.push((item.total_cases / earthPopulationPer100k).toFixed(5));
+          this.aroundTheWorldCases.Cases_of_Deaths.push((item.total_deaths / earthPopulationPer100k).toFixed(5));
+          this.aroundTheWorldCases.Cases_of_Recovery.push((item.total_recovered / earthPopulationPer100k).toFixed(5));
+        } else {
+          this.aroundTheWorldCases.Cases_of_Infection.push(item.total_cases);
+          this.aroundTheWorldCases.Cases_of_Deaths.push(item.total_deaths);
+          this.aroundTheWorldCases.Cases_of_Recovery.push(item.total_recovered);
+        }
+      });
+      this.aroundTheWorldCases.Cases_of_Infection.reverse();
+      this.aroundTheWorldCases.Cases_of_Deaths.reverse();
+      this.aroundTheWorldCases.Cases_of_Recovery.reverse();
+    }
+    const key = Object.keys(this.aroundTheWorldCases)[this.tableCurrentProp];
+    this.myChart.data.datasets[0].label = this.properties[this.tableCurrentProp].header;
+    this.myChart.data.datasets[0].data = this.aroundTheWorldCases[key];
+    this.chartTitle.textContent = this.properties[this.tableCurrentProp].header;
     this.myChart.update();
   }
 
@@ -400,6 +429,7 @@ export default class CovidDashboardView extends EventEmitter {
         this.properties = properties.filter((prop) => prop.isLastDay === this.isLastDay && prop.isPerPopulation === this.isPopulation);
         this.updateCovidInfoTable();
         this.updateAllModules();
+        this.updateChart();
       }
     });
 
@@ -598,6 +628,7 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function zoomToFeature(e) {
+      // eslint-disable-next-line no-console
       console.log(e.target);
       this.map.fitBounds(e.target.getBounds());
     }
