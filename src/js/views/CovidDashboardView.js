@@ -411,7 +411,7 @@ export default class CovidDashboardView extends EventEmitter {
     this.tableFilterInput.addEventListener('focus', (e) => {
       if (this.isNoData) { return; }
       this.simpleKeyboard.classList.add('show-keyboard');
-  /*
+      /*
     this.tableButtonNext.addEventListener('click', () => {
       this.nextProp();
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
