@@ -411,7 +411,7 @@ export default class CovidDashboardView extends EventEmitter {
     this.tableFilterInput.addEventListener('focus', (e) => {
       if (this.isNoData) { return; }
       this.simpleKeyboard.classList.add('show-keyboard');
-  /*
+      /*
     this.tableButtonNext.addEventListener('click', () => {
       this.nextProp();
       this.showCollumnTable(this.properties[this.tableCurrentProp].name);
@@ -598,6 +598,7 @@ export default class CovidDashboardView extends EventEmitter {
     }
 
     function zoomToFeature(e) {
+      // eslint-disable-next-line no-console
       console.log(e.target);
       this.map.fitBounds(e.target.getBounds());
     }
