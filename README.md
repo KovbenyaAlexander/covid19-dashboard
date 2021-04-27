@@ -4,7 +4,7 @@
 
 ***
 
-You can see the project at the [link](https://kovbenyaalexander.github.io/covid19-dashboard/).\
+You can see the project at the [link](https://lucid-sammet-a3cc9a.netlify.app/).\
 **If you see the message "no data", it means that the API is not available at the moment. Try later.**
 
 ***
