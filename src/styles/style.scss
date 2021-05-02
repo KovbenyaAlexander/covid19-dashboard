@@ -1,0 +1,710 @@
+:root {
+  font-size: 10px;
+}
+
+*,
+*::before,
+*::after {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+@mixin flex-div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin row-gap($gap: 0px) {
+  row-gap: $gap;
+}
+
+body {
+  background-color: #edeff3;
+  font-family: "Century Gothic", sans-serif;
+  .flag-img {
+    width: 50px;
+    height: 25px;
+    object-fit: cover;
+    justify-self: start;
+  }
+
+  .simple-keyboard {
+    position: fixed;
+    display: none;
+    bottom: 0;
+    z-index: 10;
+    left: 10%;
+    font-size: 1.6rem;
+    width: 80rem;
+    bottom: 0;
+  }
+
+  .show-keyboard {
+    display: block;
+  }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 2rem;
+    font-size: 2.2rem;
+    .control-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .resize-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    border: none;
+    background: none;
+    outline: none;
+
+    &:hover {
+      cursor: pointer;
+      transform: scale(1.02);
+      opacity: 1;
+    }
+  }
+
+  .resize-img {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  header {
+    height: 5vh;
+    padding: 0 4rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    border-bottom: 3px solid white;
+  }
+  main {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 90vh;
+
+    .table-map-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      column-gap: 1rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+
+      @media only screen and (max-width: 1023px) {
+        flex-direction: column;
+        row-gap: 1rem;
+      }
+
+      .map-container {
+        height: 47rem;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        row-gap: 1rem;
+        background: #fff;
+        border: 1px solid white;
+        border-radius: 10px;
+        font-size: 2.2rem;
+
+        @media only screen and (max-width: 1431px) {
+          width: 75.3rem;
+        }
+
+        @media only screen and (max-width: 1210px) {
+          width: 49.3rem;
+        }
+        @media only screen and (max-width: 1023px) {
+          width: 60rem;
+        }
+        @media only screen and (max-width: 650px) {
+          width: 45rem;
+        }
+
+        .map-container-header {
+          display: flex;
+          width: 100%;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          height: 4rem;
+          font-size: 30px;
+        }
+        .map-header {
+          width: 35rem;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .map-control {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          column-gap: 1rem;
+        }
+        .map-block {
+          width: 90rem;
+          height: 50rem;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+          margin: 0 2rem 2rem;
+          @media only screen and (max-width: 1431px) {
+            width: 70rem;
+          }
+          @media only screen and (max-width: 1210px) {
+            width: 45rem;
+          }
+          @media only screen and (max-width: 1023px) {
+            width: 55rem;
+          }
+          @media only screen and (max-width: 650px) {
+            width: 43rem;
+          }
+        }
+      }
+      .hide-map {
+        display: none;
+      }
+      .fullsize-map {
+        width: 100rem;
+        height: 80rem;
+        display: flex;
+
+        @media only screen and (max-width: 1005px) {
+          width: 70rem;
+        }
+        @media only screen and (max-width: 700px) {
+          width: 60rem;
+        }
+        @media only screen and (max-width: 625px) {
+          width: 45rem;
+        }
+      }
+    }
+    .arrow-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      background: none;
+      border: none;
+      outline: none;
+      opacity: 0.8;
+
+      &:hover {
+        cursor: pointer;
+        opacity: 1;
+        transform: scale(1.1);
+      }
+    }
+    .country-table-container {
+      display: flex;
+      align-items: center;
+      position: relative;
+      justify-content: space-between;
+      row-gap: 1rem;
+      flex-direction: column;
+      border: 1px solid white;
+      border-radius: 10px;
+      font-size: 2.2rem;
+      width: 45.7rem;
+      height: 47rem;
+      background-color: #fff;
+      @media only screen and (max-width: 1023px) {
+        width: 60rem;
+      }
+      @media only screen and (max-width: 650px) {
+        width: 45rem;
+      }
+
+      .country-container-header {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        height: 4rem;
+        font-size: 24px;
+      }
+      .table-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 1rem;
+      }
+
+      .search-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+      }
+
+      .country-search {
+        width: 18rem;
+        height: 3rem;
+      }
+      .table-header {
+        width: 35rem;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .country-table {
+        overflow: hidden;
+        flex-direction: column;
+        height: 50rem;
+        width: 40rem;
+        overflow-y: auto;
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        border-collapse: collapse;
+        .table-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          border: 1px solid black;
+          background: #f5f5f5;
+
+          &:not(:first-child) {
+            border-top: none;
+          }
+
+          &:hover {
+            cursor: pointer;
+            background: rgb(204, 204, 204);
+          }
+
+          &:active {
+            // transform: translateX(-2px);
+            background-color: green;
+          }
+
+          .table-cell {
+            @include flex-div;
+            padding: 5px;
+            height: 100%;
+
+            &:not(:first-child) {
+              border-top: none;
+            }
+          }
+
+          .cell-name {
+            width: 200px;
+            text-align: center;
+            border-right: 1px solid black;
+          }
+
+          .cell-numeric {
+            display: none;
+            width: 90px;
+          }
+
+          .cell-active {
+            display: flex;
+          }
+
+          .cell-hide {
+            display: flex;
+          }
+        }
+
+        .row-hide {
+          display: none;
+        }
+      }
+    }
+
+    .chart_container {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      width: 50rem;
+      height: 35rem;
+      text-align: center;
+      border: 1px solid white;
+      border-radius: 10px;
+      background-color: #fff;
+      padding: 5px;
+
+      @media only screen and (max-width: 1210px) {
+        width: 45rem;
+      }
+      @media only screen and (max-width: 1023px) {
+        width: 60rem;
+        height: 45rem;
+      }
+      @media only screen and (max-width: 650px) {
+        width: 45rem;
+        height: 35rem;
+      }
+
+      .chart_title_container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 1rem;
+        text-align: center;
+
+        .chart_title {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 35rem;
+          height: 7rem;
+          font-size: 3rem;
+        }
+        .fas {
+          &:hover {
+            color: #000000;
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+
+    .chart-center {
+      justify-content: center;
+    }
+
+    .info-chart-container {
+      height: 36rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      column-gap: 1rem;
+
+      @media only screen and (max-width: 1023px) {
+        flex-direction: column;
+        height: auto;
+        row-gap: 1rem;
+        margin-top: 1rem;
+      }
+    }
+
+    .covid_info {
+      position: relative;
+      height: 35rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 2.4rem;
+      border: 1px solid white;
+      border-radius: 10px;
+      background-color: #fff;
+
+      @media only screen and (max-width: 1210px) {
+        width: 45rem;
+      }
+      @media only screen and (max-width: 1023px) {
+        width: 60rem;
+      }
+      @media only screen and (max-width: 650px) {
+        width: 45rem;
+      }
+
+      .covid_info__header {
+        width: 100%;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 1rem;
+        font-size: 3rem;
+      }
+
+      .info-card-container {
+        width: 100%;
+        height: 20rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 2rem;
+        padding: 0 1rem 0;
+
+        @media only screen and (max-width: 1023px) {
+          column-gap: 1rem;
+          font-size: 1.8rem;
+        }
+        @media only screen and (max-width: 650px) {
+          column-gap: 1rem;
+        }
+      }
+
+      .covid-info-card {
+        width: 20rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid black;
+        background: #f5f5f5;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+        .card_header {
+          width: 100%;
+          height: 6rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #d30000;
+          border-bottom: 2px solid black;
+          text-align: center;
+          color: #f5f5f5;
+          &--death {
+            @extend .card_header;
+            background: #c21807;
+          }
+          &--recovered {
+            @extend .card_header;
+            background: #3bb143;
+          }
+        }
+        .card_content {
+          height: 11rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 3rem;
+          text-align: center;
+          @media only screen and (max-width: 1250px) {
+            font-size: 2.5rem;
+          }
+
+          @media only screen and (max-width: 1023px) {
+            font-size: 2.5rem;
+          }
+          @media only screen and (max-width: 650px) {
+            font-size: 2rem;
+          }
+        }
+      }
+
+      .covid_info__table {
+        border-collapse: collapse;
+      }
+
+      .covid_info__table > tr > th,
+      td {
+        border: 1px solid black;
+        padding: 5px;
+      }
+    }
+    .hide-container {
+      display: none;
+    }
+
+    .fullsize-covid-info {
+      display: flex;
+      width: 90rem;
+      height: 60rem;
+      justify-content: flex-start;
+      row-gap: 10rem;
+
+      @media only screen and (max-width: 950px) {
+        width: 60rem;
+      }
+      @media only screen and (max-width: 620px) {
+        width: 45rem;
+      }
+    }
+
+    .fullsize-covid-info .covid-info-card {
+      width: 40rem !important;
+      height: 25rem !important;
+    }
+    .fullsize-covid-info .card_header {
+      height: 12rem !important;
+    }
+    .fullsize-covid-info .card_content {
+      height: 18rem !important;
+    }
+    .fullsize-covid-info .card_header--death {
+      height: 12rem !important;
+    }
+    .fullsize-covid-info .card_header--recovered {
+      height: 12rem !important;
+    }
+
+    .fullsize-chart {
+      display: flex;
+      width: 90rem;
+      height: 60rem;
+      @media only screen and (max-width: 950px) {
+        width: 60rem;
+      }
+      @media only screen and (max-width: 620px) {
+        width: 45rem;
+      }
+    }
+
+    .fullsize-country-table {
+      display: flex;
+      width: 90rem;
+      height: 80rem;
+
+      @media only screen and (max-width: 950px) {
+        width: 60rem;
+      }
+      @media only screen and (max-width: 620px) {
+        width: 45rem;
+      }
+    }
+    .fullsize-country-table .country-table {
+      width: 70rem;
+      @media only screen and (max-width: 950px) {
+        width: 50rem;
+      }
+      @media only screen and (max-width: 620px) {
+        width: 40rem;
+      }
+    }
+  }
+
+  footer {
+    height: 5vh;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 3px solid #fff;
+    .rs-school_link {
+      width: 10rem;
+    }
+    .github-logo {
+      width: 4rem;
+      height: 4rem;
+    }
+    .author_link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000000;
+      text-decoration: none;
+      &:hover {
+        color: green;
+      }
+    }
+
+    .authors_wrapper {
+      display: flex;
+      align-items: center;
+      font-size: 2rem;
+      column-gap: 2rem;
+
+      .created_by {
+        margin-right: 1rem;
+        color: #000000;
+        font-size: 3rem;
+      }
+
+      .authors_list {
+        list-style-type: none;
+      }
+    }
+  }
+
+  .covid_info__table > tr > th,
+  td {
+    border: 1px solid black;
+    padding: 5px;
+  }
+}
+
+.main-center {
+  flex-direction: row;
+  justify-content: center;
+}
+
+.data-load-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.data-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  row-gap: 1rem;
+  font-size: 2rem;
+  margin: 1rem 0 1rem;
+  border-radius: 100%;
+}
+.load-data-img {
+  width: 15rem;
+  height: 15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: rotating 2s linear infinite;
+}
+
+.no-data-img {
+  width: 15rem;
+  height: 15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.data-img-s {
+  width: 8rem;
+  height: 8rem;
+}
+
+@-webkit-keyframes rotating {
+  from {
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+h4 {
+  background-color: rgba(198, 255, 255, 0.925);
+}
+
+.legend {
+  line-height: 18px;
+  color: #555;
+}
+.legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.7;
+}

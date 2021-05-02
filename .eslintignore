@@ -2,3 +2,5 @@ node_modules
 /.vscode
 /.git
 dist
+countries.js
+leaflet.js
